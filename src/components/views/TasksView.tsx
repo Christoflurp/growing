@@ -1,0 +1,540 @@
+import { useAppData } from "../../context/AppDataContext";
+import { useCalendar } from "../../hooks/useCalendar";
+import { useTasks } from "../../hooks/useTasks";
+import { useTodos } from "../../hooks/useTodos";
+import { useGoals } from "../../hooks/useGoals";
+import { useConfirmModal } from "../../context/ConfirmModalContext";
+import { isToday, isFutureDate } from "../../utils/dateUtils";
+import { formatDateHeader } from "../../utils/formatUtils";
+import { Todo } from "../../types";
+
+interface TasksViewProps {
+  onOpenDatePicker: () => void;
+  onOpenSchedulePicker: (todo: Todo) => void;
+}
+
+export function TasksView({ onOpenDatePicker, onOpenSchedulePicker }: TasksViewProps) {
+  const { data } = useAppData();
+  const { selectedDate, goToToday } = useCalendar();
+  const { showConfirm } = useConfirmModal();
+  const { getAllGoals, getGoalById } = useGoals();
+
+  const {
+    showTaskForm,
+    setShowTaskForm,
+    taskText,
+    setTaskText,
+    taskDescription,
+    setTaskDescription,
+    taskGoalId,
+    setTaskGoalId,
+    editingTaskId,
+    editTaskText,
+    setEditTaskText,
+    editTaskDescription,
+    setEditTaskDescription,
+    editTaskGoalId,
+    setEditTaskGoalId,
+    getTasksForDate,
+    getFutureTasks,
+    getIncompleteTasksBeforeDate,
+    addTask,
+    toggleTaskComplete,
+    deleteTask: performDeleteTask,
+    startEditingTask,
+    cancelEditingTask,
+    updateTask,
+    carryForwardTask,
+    openTaskEditModal,
+  } = useTasks();
+
+  const {
+    showBacklogForm,
+    setShowBacklogForm,
+    backlogText,
+    setBacklogText,
+    backlogDescription,
+    setBacklogDescription,
+    backlogGoalId,
+    setBacklogGoalId,
+    editingTodoId,
+    editTodoText,
+    setEditTodoText,
+    editTodoDescription,
+    setEditTodoDescription,
+    editTodoGoalId,
+    setEditTodoGoalId,
+    addTodo,
+    deleteTodo: performDeleteTodo,
+    startEditingTodo,
+    cancelEditingTodo,
+    updateTodo,
+    deferTaskToBacklog,
+  } = useTodos();
+
+  const deleteTask = (taskId: string) => {
+    showConfirm("Delete this task?", () => performDeleteTask(taskId));
+  };
+
+  const deleteTodo = (todoId: string) => {
+    showConfirm("Delete this item?", () => performDeleteTodo(todoId));
+  };
+
+  const getFutureTaskDates = () => {
+    const futureTasks = getFutureTasks();
+    const uniqueDates = [...new Set(futureTasks.map((t) => t.date))];
+    return uniqueDates.sort();
+  };
+
+  const getUniqueDatesWithIncompleteTasks = (beforeDate: string) => {
+    const tasks = getIncompleteTasksBeforeDate(beforeDate);
+    const dates = [...new Set(tasks.map((t) => t.date))];
+    return dates.slice(0, 7);
+  };
+
+  return (
+    <div className="view tasks-view">
+      <header className="view-header tasks-header">
+        <div className="date-nav">
+          <button className="date-nav-title" onClick={onOpenDatePicker}>
+            <h1>{formatDateHeader(selectedDate)}</h1>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+              <line x1="16" y1="2" x2="16" y2="6" />
+              <line x1="8" y1="2" x2="8" y2="6" />
+              <line x1="3" y1="10" x2="21" y2="10" />
+            </svg>
+          </button>
+          {!isToday(selectedDate) && (
+            <button className="today-link" onClick={goToToday}>
+              Go to today
+            </button>
+          )}
+        </div>
+        <button className="add-btn" onClick={() => setShowTaskForm(true)}>
+          Add Task
+        </button>
+      </header>
+
+      {showTaskForm && (
+        <div className="task-form">
+          <input
+            type="text"
+            placeholder="What do you need to do?"
+            value={taskText}
+            onChange={(e) => setTaskText(e.target.value)}
+            className="task-text-input"
+            autoFocus
+          />
+          <textarea
+            placeholder="Description (optional)"
+            value={taskDescription}
+            onChange={(e) => setTaskDescription(e.target.value)}
+            className="task-description-input"
+          />
+          <select
+            value={taskGoalId || ""}
+            onChange={(e) => setTaskGoalId(e.target.value || null)}
+            className="task-goal-select"
+          >
+            <option value="">Link to goal (optional)</option>
+            {getAllGoals().map((goal) => (
+              <option key={goal.id} value={goal.id}>
+                {goal.sectionTitle}: {goal.text}
+              </option>
+            ))}
+          </select>
+          <div className="task-form-actions">
+            <button className="btn-save" onClick={addTask} disabled={!taskText.trim()}>
+              Add Task
+            </button>
+            <button
+              className="btn-cancel"
+              onClick={() => {
+                setShowTaskForm(false);
+                setTaskText("");
+                setTaskDescription("");
+                setTaskGoalId(null);
+              }}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {getTasksForDate(selectedDate).length === 0 && !showTaskForm ? (
+        <div className="empty-state">
+          <div className="empty-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
+              <path d="M9 11l3 3L22 4" />
+              <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" />
+            </svg>
+          </div>
+          <p>No tasks for {formatDateHeader(selectedDate).toLowerCase()}</p>
+          {isToday(selectedDate) && <span>Start your day with a plan</span>}
+          {isFutureDate(selectedDate) && <span>Plan ahead for this day</span>}
+        </div>
+      ) : (
+        <div className="task-list">
+          {getTasksForDate(selectedDate).map((task) => {
+            const goalInfo = task.goalId ? getGoalById(task.goalId) : null;
+            const isEditing = editingTaskId === task.id;
+            const isMoved = !!task.movedToDate;
+            return (
+              <div key={task.id} className={`task-card ${task.completed ? "completed" : ""} ${isEditing ? "editing" : ""} ${isMoved ? "moved" : ""}`}>
+                {isEditing ? (
+                  <div className="task-edit-form">
+                    <input
+                      type="text"
+                      value={editTaskText}
+                      onChange={(e) => setEditTaskText(e.target.value)}
+                      className="task-text-input"
+                      autoFocus
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && editTaskText.trim()) updateTask();
+                        if (e.key === "Escape") cancelEditingTask();
+                      }}
+                    />
+                    <textarea
+                      placeholder="Description (optional)"
+                      value={editTaskDescription}
+                      onChange={(e) => setEditTaskDescription(e.target.value)}
+                      className="task-description-input"
+                    />
+                    <select
+                      value={editTaskGoalId || ""}
+                      onChange={(e) => setEditTaskGoalId(e.target.value || null)}
+                      className="task-goal-select"
+                    >
+                      <option value="">Link to goal (optional)</option>
+                      {getAllGoals().map((goal) => (
+                        <option key={goal.id} value={goal.id}>
+                          {goal.sectionTitle}: {goal.text}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="task-form-actions">
+                      <button className="btn-save" onClick={updateTask} disabled={!editTaskText.trim()}>
+                        Save
+                      </button>
+                      <button className="btn-cancel" onClick={cancelEditingTask}>
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <button
+                      className={`checkbox ${isMoved ? "disabled" : ""}`}
+                      onClick={() => !isMoved && toggleTaskComplete(task.id)}
+                      disabled={isMoved}
+                    >
+                      {task.completed && (
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                      )}
+                    </button>
+                    <div className="task-card-content">
+                      <p className="task-card-text">{task.text}</p>
+                      {task.description && <p className="task-card-description">{task.description}</p>}
+                      {isMoved && (
+                        <span className="task-moved-tag">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <line x1="5" y1="12" x2="19" y2="12" />
+                            <polyline points="12 5 19 12 12 19" />
+                          </svg>
+                          Moved to {new Date(task.movedToDate! + "T12:00:00").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
+                        </span>
+                      )}
+                      {goalInfo && !isMoved && (
+                        <span className="task-goal-tag">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                            <circle cx="12" cy="12" r="9" />
+                            <circle cx="12" cy="12" r="5" />
+                            <circle cx="12" cy="12" r="1" fill="currentColor" />
+                          </svg>
+                          {goalInfo.sectionTitle}
+                        </span>
+                      )}
+                    </div>
+                    {!isMoved && (
+                      <>
+                        {!task.completed && (
+                          <button className="task-defer" onClick={() => deferTaskToBacklog(task)} title="Move to backlog">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                              <line x1="8" y1="6" x2="21" y2="6" />
+                              <line x1="8" y1="12" x2="21" y2="12" />
+                              <line x1="8" y1="18" x2="21" y2="18" />
+                              <line x1="3" y1="6" x2="3.01" y2="6" />
+                              <line x1="3" y1="12" x2="3.01" y2="12" />
+                              <line x1="3" y1="18" x2="3.01" y2="18" />
+                            </svg>
+                          </button>
+                        )}
+                        <button className="task-edit" onClick={() => startEditingTask(task)}>
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                            <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+                            <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+                          </svg>
+                        </button>
+                        <button className="task-delete" onClick={() => deleteTask(task.id)}>
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                            <polyline points="3 6 5 6 21 6" />
+                            <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+                          </svg>
+                        </button>
+                      </>
+                    )}
+                  </>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {isToday(selectedDate) && getIncompleteTasksBeforeDate(selectedDate).length > 0 && (
+        <div className="incomplete-tasks-section">
+          <h2 className="subsection-title">Incomplete from previous days</h2>
+          <div className="incomplete-tasks-list">
+            {getUniqueDatesWithIncompleteTasks(selectedDate).map((date) => {
+              const tasksForDate = getIncompleteTasksBeforeDate(selectedDate).filter((t) => t.date === date);
+              return (
+                <div key={date} className="incomplete-date-group">
+                  <span className="incomplete-date-label">{formatDateHeader(date)}</span>
+                  {tasksForDate.map((task) => (
+                    <div key={task.id} className="incomplete-task-item">
+                      <span className="incomplete-task-text">{task.text}</span>
+                      <button className="carry-forward-btn" onClick={() => carryForwardTask(task)} title="Carry forward to today">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <line x1="5" y1="12" x2="19" y2="12" />
+                          <polyline points="12 5 19 12 12 19" />
+                        </svg>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {isToday(selectedDate) && getFutureTasks().length > 0 && (
+        <div className="future-tasks-section">
+          <h2 className="subsection-title">Upcoming</h2>
+          <div className="future-tasks-list">
+            {getFutureTaskDates().map((date) => {
+              const tasksForDate = getFutureTasks().filter((t) => t.date === date);
+              return (
+                <div key={date} className="future-date-group">
+                  <span className="future-date-label">{formatDateHeader(date)}</span>
+                  {tasksForDate.map((task) => {
+                    const goalInfo = task.goalId ? getGoalById(task.goalId) : null;
+                    return (
+                      <div key={task.id} className="future-task-item clickable" onClick={() => openTaskEditModal(task)}>
+                        <span className="future-task-text">{task.text}</span>
+                        {goalInfo && <span className="task-goal-tag small">{goalInfo.sectionTitle}</span>}
+                        <button
+                          className="unschedule-btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deferTaskToBacklog(task);
+                          }}
+                          title="Move to backlog"
+                        >
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                            <line x1="8" y1="6" x2="21" y2="6" />
+                            <line x1="8" y1="12" x2="21" y2="12" />
+                            <line x1="8" y1="18" x2="21" y2="18" />
+                            <line x1="3" y1="6" x2="3.01" y2="6" />
+                            <line x1="3" y1="12" x2="3.01" y2="12" />
+                            <line x1="3" y1="18" x2="3.01" y2="18" />
+                          </svg>
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {isToday(selectedDate) && (
+        <div className="backlog-section">
+          <div className="backlog-section-header">
+            <h2 className="subsection-title">Backlog</h2>
+            <button className="add-btn small" onClick={() => setShowBacklogForm(true)}>
+              Add
+            </button>
+          </div>
+
+          {showBacklogForm && (
+            <div className="task-form backlog-form">
+              <input
+                type="text"
+                placeholder="What needs to be done?"
+                value={backlogText}
+                onChange={(e) => setBacklogText(e.target.value)}
+                className="task-text-input"
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && backlogText.trim()) addTodo();
+                  if (e.key === "Escape") {
+                    setShowBacklogForm(false);
+                    setBacklogText("");
+                    setBacklogDescription("");
+                    setBacklogGoalId(null);
+                  }
+                }}
+              />
+              <textarea
+                placeholder="Description (optional)"
+                value={backlogDescription}
+                onChange={(e) => setBacklogDescription(e.target.value)}
+                className="task-description-input"
+              />
+              <select
+                value={backlogGoalId || ""}
+                onChange={(e) => setBacklogGoalId(e.target.value || null)}
+                className="task-goal-select"
+              >
+                <option value="">Link to goal (optional)</option>
+                {getAllGoals().map((goal) => (
+                  <option key={goal.id} value={goal.id}>
+                    {goal.sectionTitle}: {goal.text}
+                  </option>
+                ))}
+              </select>
+              <div className="task-form-actions">
+                <button className="btn-save" onClick={addTodo} disabled={!backlogText.trim()}>
+                  Add to Backlog
+                </button>
+                <button
+                  className="btn-cancel"
+                  onClick={() => {
+                    setShowBacklogForm(false);
+                    setBacklogText("");
+                    setBacklogDescription("");
+                    setBacklogGoalId(null);
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+
+          {(data?.todos?.length ?? 0) === 0 && !showBacklogForm ? (
+            <div className="backlog-empty">
+              <p>No items in backlog</p>
+            </div>
+          ) : (
+            <div className="backlog-list">
+              {data?.todos?.map((todo) => {
+                const goalInfo = todo.goalId ? getGoalById(todo.goalId) : null;
+                const isEditing = editingTodoId === todo.id;
+                return (
+                  <div key={todo.id} className={`backlog-item ${isEditing ? "editing" : ""}`}>
+                    {isEditing ? (
+                      <div className="task-edit-form">
+                        <input
+                          type="text"
+                          value={editTodoText}
+                          onChange={(e) => setEditTodoText(e.target.value)}
+                          className="task-text-input"
+                          autoFocus
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" && editTodoText.trim()) updateTodo();
+                            if (e.key === "Escape") cancelEditingTodo();
+                          }}
+                        />
+                        <textarea
+                          placeholder="Description (optional)"
+                          value={editTodoDescription}
+                          onChange={(e) => setEditTodoDescription(e.target.value)}
+                          className="task-description-input"
+                        />
+                        <select
+                          value={editTodoGoalId || ""}
+                          onChange={(e) => setEditTodoGoalId(e.target.value || null)}
+                          className="task-goal-select"
+                        >
+                          <option value="">Link to goal (optional)</option>
+                          {getAllGoals().map((goal) => (
+                            <option key={goal.id} value={goal.id}>
+                              {goal.sectionTitle}: {goal.text}
+                            </option>
+                          ))}
+                        </select>
+                        <div className="task-form-actions">
+                          <button className="btn-save" onClick={updateTodo} disabled={!editTodoText.trim()}>
+                            Save
+                          </button>
+                          <button className="btn-cancel" onClick={cancelEditingTodo}>
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <button className="schedule-btn" onClick={() => onOpenSchedulePicker(todo)} title="Schedule task">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                            <line x1="16" y1="2" x2="16" y2="6" />
+                            <line x1="8" y1="2" x2="8" y2="6" />
+                            <line x1="3" y1="10" x2="21" y2="10" />
+                            <polyline points="9 16 12 13 15 16" />
+                          </svg>
+                        </button>
+                        <div className="backlog-item-content">
+                          <p className="backlog-item-text">{todo.text}</p>
+                          {todo.description && <p className="backlog-item-description">{todo.description}</p>}
+                          {todo.lastScheduledDate && (
+                            <span className="task-scheduled-tag">
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                <circle cx="12" cy="12" r="10" />
+                                <polyline points="12 6 12 12 16 14" />
+                              </svg>
+                              Last scheduled {new Date(todo.lastScheduledDate + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                            </span>
+                          )}
+                          {goalInfo && (
+                            <span className="task-goal-tag">
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                <circle cx="12" cy="12" r="9" />
+                                <circle cx="12" cy="12" r="5" />
+                                <circle cx="12" cy="12" r="1" fill="currentColor" />
+                              </svg>
+                              {goalInfo.sectionTitle}
+                            </span>
+                          )}
+                        </div>
+                        <button className="task-edit" onClick={() => startEditingTodo(todo)}>
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                            <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+                            <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+                          </svg>
+                        </button>
+                        <button className="task-delete" onClick={() => deleteTodo(todo.id)}>
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                            <polyline points="3 6 5 6 21 6" />
+                            <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+                          </svg>
+                        </button>
+                      </>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
