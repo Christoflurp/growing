@@ -661,7 +661,7 @@ fn start_wake_listener(app_handle: AppHandle) {
 
     REGISTER_OBSERVER_CLASS.call_once(|| {
         let superclass = Class::get("NSObject").unwrap();
-        let mut decl = objc::declare::ClassDecl::new("GrowingFlurpWakeObserver", superclass).unwrap();
+        let mut decl = objc::declare::ClassDecl::new("GrowingWakeObserver", superclass).unwrap();
 
         unsafe {
             decl.add_method(
@@ -674,7 +674,7 @@ fn start_wake_listener(app_handle: AppHandle) {
     });
 
     unsafe {
-        let observer_class = Class::get("GrowingFlurpWakeObserver").unwrap();
+        let observer_class = Class::get("GrowingWakeObserver").unwrap();
         let observer: Id = msg_send![observer_class, new];
 
         let workspace_class = Class::get("NSWorkspace").unwrap();

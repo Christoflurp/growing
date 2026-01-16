@@ -1,104 +1,16 @@
-    Blocking waiting for file lock on package cache
-    Blocking waiting for file lock on build directory
-   0.835699708s  INFO prepare_target{force=false package_id=growing v1.0.0 (/Users/christoflurp/dev-stuff/growth/growing-flurp/src-tauri) target="growing_lib"}: cargo::core::compiler::fingerprint: fingerprint error for growing v1.0.0 (/Users/christoflurp/dev-stuff/growth/growing-flurp/src-tauri)/Check { test: false }/TargetInner { ..: lib_target("growing_lib", ["staticlib", "cdylib", "rlib"], "/Users/christoflurp/dev-stuff/growth/growing-flurp/src-tauri/src/lib.rs", Edition2021) }
-   0.835722375s  INFO prepare_target{force=false package_id=growing v1.0.0 (/Users/christoflurp/dev-stuff/growth/growing-flurp/src-tauri) target="growing_lib"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/christoflurp/dev-stuff/growth/growing-flurp/src-tauri/target/debug/.fingerprint/growing-7c15cf659680622a/lib-growing_lib`
-
-Caused by:
-    No such file or directory (os error 2)
-
-Stack backtrace:
-   0: std::backtrace::Backtrace::create
-   1: std::backtrace::Backtrace::capture
-   2: cargo_util::paths::read_bytes
-   3: cargo_util::paths::read
-   4: cargo::core::compiler::fingerprint::_compare_old_fingerprint
-   5: cargo::core::compiler::fingerprint::prepare_target
-   6: cargo::core::compiler::compile
-   7: <cargo::core::compiler::build_runner::BuildRunner>::compile
-   8: cargo::ops::cargo_compile::compile_ws
-   9: cargo::ops::cargo_compile::compile_with_exec
-  10: cargo::ops::cargo_compile::compile
-  11: cargo::commands::check::exec
-  12: <cargo::cli::Exec>::exec
-  13: cargo::main
-  14: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
-  15: std::rt::lang_start::<()>::{closure#0}
-  16: std::rt::lang_start_internal
-  17: _main
-   0.861128750s  INFO prepare_target{force=false package_id=growing v1.0.0 (/Users/christoflurp/dev-stuff/growth/growing-flurp/src-tauri) target="growing_lib"}: cargo::core::compiler::fingerprint: fingerprint error for growing v1.0.0 (/Users/christoflurp/dev-stuff/growth/growing-flurp/src-tauri)/Check { test: true }/TargetInner { ..: lib_target("growing_lib", ["staticlib", "cdylib", "rlib"], "/Users/christoflurp/dev-stuff/growth/growing-flurp/src-tauri/src/lib.rs", Edition2021) }
-   0.861142917s  INFO prepare_target{force=false package_id=growing v1.0.0 (/Users/christoflurp/dev-stuff/growth/growing-flurp/src-tauri) target="growing_lib"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/christoflurp/dev-stuff/growth/growing-flurp/src-tauri/target/debug/.fingerprint/growing-7f4ede7c3abb7ed0/test-lib-growing_lib`
-
-Caused by:
-    No such file or directory (os error 2)
-
-Stack backtrace:
-   0: std::backtrace::Backtrace::create
-   1: std::backtrace::Backtrace::capture
-   2: cargo_util::paths::read_bytes
-   3: cargo_util::paths::read
-   4: cargo::core::compiler::fingerprint::_compare_old_fingerprint
-   5: cargo::core::compiler::fingerprint::prepare_target
-   6: cargo::core::compiler::compile
-   7: <cargo::core::compiler::build_runner::BuildRunner>::compile
-   8: cargo::ops::cargo_compile::compile_ws
-   9: cargo::ops::cargo_compile::compile_with_exec
-  10: cargo::ops::cargo_compile::compile
-  11: cargo::commands::check::exec
-  12: <cargo::cli::Exec>::exec
-  13: cargo::main
-  14: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
-  15: std::rt::lang_start::<()>::{closure#0}
-  16: std::rt::lang_start_internal
-  17: _main
-   0.862113458s  INFO prepare_target{force=false package_id=growing v1.0.0 (/Users/christoflurp/dev-stuff/growth/growing-flurp/src-tauri) target="growing"}: cargo::core::compiler::fingerprint: fingerprint error for growing v1.0.0 (/Users/christoflurp/dev-stuff/growth/growing-flurp/src-tauri)/Check { test: false }/TargetInner { name: "growing", doc: true, ..: with_path("/Users/christoflurp/dev-stuff/growth/growing-flurp/src-tauri/src/main.rs", Edition2021) }
-   0.862123292s  INFO prepare_target{force=false package_id=growing v1.0.0 (/Users/christoflurp/dev-stuff/growth/growing-flurp/src-tauri) target="growing"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/christoflurp/dev-stuff/growth/growing-flurp/src-tauri/target/debug/.fingerprint/growing-a7c7b5a1de7559bb/bin-growing`
-
-Caused by:
-    No such file or directory (os error 2)
-
-Stack backtrace:
-   0: std::backtrace::Backtrace::create
-   1: std::backtrace::Backtrace::capture
-   2: cargo_util::paths::read_bytes
-   3: cargo_util::paths::read
-   4: cargo::core::compiler::fingerprint::_compare_old_fingerprint
-   5: cargo::core::compiler::fingerprint::prepare_target
-   6: cargo::core::compiler::compile
-   7: <cargo::core::compiler::build_runner::BuildRunner>::compile
-   8: cargo::ops::cargo_compile::compile_ws
-   9: cargo::ops::cargo_compile::compile_with_exec
-  10: cargo::ops::cargo_compile::compile
-  11: cargo::commands::check::exec
-  12: <cargo::cli::Exec>::exec
-  13: cargo::main
-  14: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
-  15: std::rt::lang_start::<()>::{closure#0}
-  16: std::rt::lang_start_internal
-  17: _main
-   0.862887208s  INFO prepare_target{force=false package_id=growing v1.0.0 (/Users/christoflurp/dev-stuff/growth/growing-flurp/src-tauri) target="growing"}: cargo::core::compiler::fingerprint: fingerprint error for growing v1.0.0 (/Users/christoflurp/dev-stuff/growth/growing-flurp/src-tauri)/Check { test: true }/TargetInner { name: "growing", doc: true, ..: with_path("/Users/christoflurp/dev-stuff/growth/growing-flurp/src-tauri/src/main.rs", Edition2021) }
-   0.862893000s  INFO prepare_target{force=false package_id=growing v1.0.0 (/Users/christoflurp/dev-stuff/growth/growing-flurp/src-tauri) target="growing"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/christoflurp/dev-stuff/growth/growing-flurp/src-tauri/target/debug/.fingerprint/growing-9b911f93dd5f982e/test-bin-growing`
-
-Caused by:
-    No such file or directory (os error 2)
-
-Stack backtrace:
-   0: std::backtrace::Backtrace::create
-   1: std::backtrace::Backtrace::capture
-   2: cargo_util::paths::read_bytes
-   3: cargo_util::paths::read
-   4: cargo::core::compiler::fingerprint::_compare_old_fingerprint
-   5: cargo::core::compiler::fingerprint::prepare_target
-   6: cargo::core::compiler::compile
-   7: <cargo::core::compiler::build_runner::BuildRunner>::compile
-   8: cargo::ops::cargo_compile::compile_ws
-   9: cargo::ops::cargo_compile::compile_with_exec
-  10: cargo::ops::cargo_compile::compile
-  11: cargo::commands::check::exec
-  12: <cargo::cli::Exec>::exec
-  13: cargo::main
-  14: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
-  15: std::rt::lang_start::<()>::{closure#0}
-  16: std::rt::lang_start_internal
-  17: _main
+   0.152775208s  INFO prepare_target{force=false package_id=growing v1.0.0 (/Users/christoflurp/dev-stuff/growth/growing-flurp/src-tauri) target="growing_lib"}: cargo::core::compiler::fingerprint: stale: changed "/Users/christoflurp/dev-stuff/growth/growing-flurp/src-tauri/src/lib.rs"
+   0.152792792s  INFO prepare_target{force=false package_id=growing v1.0.0 (/Users/christoflurp/dev-stuff/growth/growing-flurp/src-tauri) target="growing_lib"}: cargo::core::compiler::fingerprint:           (vs) "/Users/christoflurp/dev-stuff/growth/growing-flurp/src-tauri/target/debug/.fingerprint/growing-7c15cf659680622a/dep-lib-growing_lib"
+   0.152795292s  INFO prepare_target{force=false package_id=growing v1.0.0 (/Users/christoflurp/dev-stuff/growth/growing-flurp/src-tauri) target="growing_lib"}: cargo::core::compiler::fingerprint:                FileTime { seconds: 1768596483, nanos: 702083954 } < FileTime { seconds: 1768597173, nanos: 957486420 }
+   0.153231917s  INFO prepare_target{force=false package_id=growing v1.0.0 (/Users/christoflurp/dev-stuff/growth/growing-flurp/src-tauri) target="growing_lib"}: cargo::core::compiler::fingerprint: fingerprint dirty for growing v1.0.0 (/Users/christoflurp/dev-stuff/growth/growing-flurp/src-tauri)/Check { test: false }/TargetInner { ..: lib_target("growing_lib", ["staticlib", "cdylib", "rlib"], "/Users/christoflurp/dev-stuff/growth/growing-flurp/src-tauri/src/lib.rs", Edition2021) }
+   0.153250958s  INFO prepare_target{force=false package_id=growing v1.0.0 (/Users/christoflurp/dev-stuff/growth/growing-flurp/src-tauri) target="growing_lib"}: cargo::core::compiler::fingerprint:     dirty: FsStatusOutdated(StaleItem(ChangedFile { reference: "/Users/christoflurp/dev-stuff/growth/growing-flurp/src-tauri/target/debug/.fingerprint/growing-7c15cf659680622a/dep-lib-growing_lib", reference_mtime: FileTime { seconds: 1768596483, nanos: 702083954 }, stale: "/Users/christoflurp/dev-stuff/growth/growing-flurp/src-tauri/src/lib.rs", stale_mtime: FileTime { seconds: 1768597173, nanos: 957486420 } }))
+   0.176148250s  INFO prepare_target{force=false package_id=growing v1.0.0 (/Users/christoflurp/dev-stuff/growth/growing-flurp/src-tauri) target="growing_lib"}: cargo::core::compiler::fingerprint: stale: changed "/Users/christoflurp/dev-stuff/growth/growing-flurp/src-tauri/src/lib.rs"
+   0.176157417s  INFO prepare_target{force=false package_id=growing v1.0.0 (/Users/christoflurp/dev-stuff/growth/growing-flurp/src-tauri) target="growing_lib"}: cargo::core::compiler::fingerprint:           (vs) "/Users/christoflurp/dev-stuff/growth/growing-flurp/src-tauri/target/debug/.fingerprint/growing-7f4ede7c3abb7ed0/dep-test-lib-growing_lib"
+   0.176158917s  INFO prepare_target{force=false package_id=growing v1.0.0 (/Users/christoflurp/dev-stuff/growth/growing-flurp/src-tauri) target="growing_lib"}: cargo::core::compiler::fingerprint:                FileTime { seconds: 1768596483, nanos: 702057955 } < FileTime { seconds: 1768597173, nanos: 957486420 }
+   0.176505292s  INFO prepare_target{force=false package_id=growing v1.0.0 (/Users/christoflurp/dev-stuff/growth/growing-flurp/src-tauri) target="growing_lib"}: cargo::core::compiler::fingerprint: fingerprint dirty for growing v1.0.0 (/Users/christoflurp/dev-stuff/growth/growing-flurp/src-tauri)/Check { test: true }/TargetInner { ..: lib_target("growing_lib", ["staticlib", "cdylib", "rlib"], "/Users/christoflurp/dev-stuff/growth/growing-flurp/src-tauri/src/lib.rs", Edition2021) }
+   0.176518583s  INFO prepare_target{force=false package_id=growing v1.0.0 (/Users/christoflurp/dev-stuff/growth/growing-flurp/src-tauri) target="growing_lib"}: cargo::core::compiler::fingerprint:     dirty: FsStatusOutdated(StaleItem(ChangedFile { reference: "/Users/christoflurp/dev-stuff/growth/growing-flurp/src-tauri/target/debug/.fingerprint/growing-7f4ede7c3abb7ed0/dep-test-lib-growing_lib", reference_mtime: FileTime { seconds: 1768596483, nanos: 702057955 }, stale: "/Users/christoflurp/dev-stuff/growth/growing-flurp/src-tauri/src/lib.rs", stale_mtime: FileTime { seconds: 1768597173, nanos: 957486420 } }))
+   0.177573208s  INFO prepare_target{force=false package_id=growing v1.0.0 (/Users/christoflurp/dev-stuff/growth/growing-flurp/src-tauri) target="growing"}: cargo::core::compiler::fingerprint: fingerprint dirty for growing v1.0.0 (/Users/christoflurp/dev-stuff/growth/growing-flurp/src-tauri)/Check { test: false }/TargetInner { name: "growing", doc: true, ..: with_path("/Users/christoflurp/dev-stuff/growth/growing-flurp/src-tauri/src/main.rs", Edition2021) }
+   0.177581417s  INFO prepare_target{force=false package_id=growing v1.0.0 (/Users/christoflurp/dev-stuff/growth/growing-flurp/src-tauri) target="growing"}: cargo::core::compiler::fingerprint:     dirty: FsStatusOutdated(StaleDepFingerprint { name: "growing_lib" })
+   0.178371750s  INFO prepare_target{force=false package_id=growing v1.0.0 (/Users/christoflurp/dev-stuff/growth/growing-flurp/src-tauri) target="growing"}: cargo::core::compiler::fingerprint: fingerprint dirty for growing v1.0.0 (/Users/christoflurp/dev-stuff/growth/growing-flurp/src-tauri)/Check { test: true }/TargetInner { name: "growing", doc: true, ..: with_path("/Users/christoflurp/dev-stuff/growth/growing-flurp/src-tauri/src/main.rs", Edition2021) }
+   0.178376208s  INFO prepare_target{force=false package_id=growing v1.0.0 (/Users/christoflurp/dev-stuff/growth/growing-flurp/src-tauri) target="growing"}: cargo::core::compiler::fingerprint:     dirty: FsStatusOutdated(StaleDepFingerprint { name: "growing_lib" })
     Checking growing v1.0.0 (/Users/christoflurp/dev-stuff/growth/growing-flurp/src-tauri)
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.56s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.58s
