@@ -31,3 +31,6 @@ oauth_credentials.json
 google_credentials.json
 oauth_tokens.json
 *.credentials.json
+
+# Builds
+*.dmg
