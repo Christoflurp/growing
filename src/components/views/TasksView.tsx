@@ -8,6 +8,7 @@ import { useConfirmModal } from "../../context/ConfirmModalContext";
 import { isToday, isFutureDate } from "../../utils/dateUtils";
 import { formatDateHeader } from "../../utils/formatUtils";
 import { Todo } from "../../types";
+import { FrogIcon } from "../shared/FrogIcon";
 
 interface TasksViewProps {
   onOpenDatePicker: () => void;
@@ -22,6 +23,8 @@ export function TasksView({ onOpenDatePicker, onOpenSchedulePicker }: TasksViewP
 
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const [isDraggingFrog, setIsDraggingFrog] = useState(false);
+  const [frogDropTarget, setFrogDropTarget] = useState<string | null>(null);
   const taskListRef = useRef<HTMLDivElement | null>(null);
   const taskRefs = useRef<(HTMLDivElement | null)[]>([]);
 
@@ -34,6 +37,8 @@ export function TasksView({ onOpenDatePicker, onOpenSchedulePicker }: TasksViewP
     setTaskDescription,
     taskGoalId,
     setTaskGoalId,
+    taskIsFrog,
+    setTaskIsFrog,
     editingTaskId,
     editTaskText,
     setEditTaskText,
@@ -41,7 +46,10 @@ export function TasksView({ onOpenDatePicker, onOpenSchedulePicker }: TasksViewP
     setEditTaskDescription,
     editTaskGoalId,
     setEditTaskGoalId,
+    editTaskIsFrog,
+    setEditTaskIsFrog,
     getTasksForDate,
+    getFrogForDate,
     getFutureTasks,
     getIncompleteTasksBeforeDate,
     addTask,
@@ -53,6 +61,8 @@ export function TasksView({ onOpenDatePicker, onOpenSchedulePicker }: TasksViewP
     carryForwardTask,
     openTaskEditModal,
     reorderTasks,
+    setFrogTask,
+    clearFrog,
   } = useTasks();
 
   const {
@@ -101,7 +111,7 @@ export function TasksView({ onOpenDatePicker, onOpenSchedulePicker }: TasksViewP
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>, index: number) => {
     const target = e.target as HTMLElement;
-    if (target.closest("button") || target.closest("input") || target.closest("textarea") || target.closest("select")) {
+    if (target.closest("button") || target.closest("input") || target.closest("textarea") || target.closest("select") || target.closest(".frog-indicator")) {
       return;
     }
     e.preventDefault();
@@ -145,6 +155,51 @@ export function TasksView({ onOpenDatePicker, onOpenSchedulePicker }: TasksViewP
     };
   }, [draggedIndex, dragOverIndex, selectedDate, getTasksForDate, reorderTasks]);
 
+  const hasFrog = !!getFrogForDate(selectedDate);
+
+  const handleFrogDragStart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingFrog(true);
+  };
+
+  useEffect(() => {
+    if (!isDraggingFrog) return;
+    const tasks = getTasksForDate(selectedDate);
+
+    const handleMouseMove = (e: MouseEvent) => {
+      for (let i = 0; i < tasks.length; i++) {
+        const ref = taskRefs.current[i];
+        if (!ref) continue;
+        const rect = ref.getBoundingClientRect();
+        if (e.clientY >= rect.top && e.clientY <= rect.bottom && e.clientX >= rect.left && e.clientX <= rect.right) {
+          if (!tasks[i].isFrog) {
+            setFrogDropTarget(tasks[i].id);
+          }
+          return;
+        }
+      }
+      setFrogDropTarget(null);
+    };
+
+    const handleMouseUp = async () => {
+      if (frogDropTarget) {
+        await setFrogTask(frogDropTarget, selectedDate);
+      } else if (hasFrog) {
+        await clearFrog(selectedDate);
+      }
+      setIsDraggingFrog(false);
+      setFrogDropTarget(null);
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [isDraggingFrog, frogDropTarget, selectedDate, getTasksForDate, setFrogTask, clearFrog, hasFrog]);
+
   return (
     <div className="view tasks-view">
       <header className="view-header tasks-header">
@@ -164,9 +219,20 @@ export function TasksView({ onOpenDatePicker, onOpenSchedulePicker }: TasksViewP
             </button>
           )}
         </div>
-        <button className="add-btn" onClick={() => setShowTaskForm(true)}>
-          Add Task
-        </button>
+        <div className="header-actions">
+          {!hasFrog && (
+            <span
+              className={`frog-drag-source ${isDraggingFrog ? "dragging" : ""}`}
+              onMouseDown={handleFrogDragStart}
+              title="Drag onto a task to mark it as today's frog (most important task)"
+            >
+              <FrogIcon size={32} />
+            </span>
+          )}
+          <button className="add-btn" onClick={() => setShowTaskForm(true)}>
+            Add Task
+          </button>
+        </div>
       </header>
 
       {showTaskForm && (
@@ -197,6 +263,16 @@ export function TasksView({ onOpenDatePicker, onOpenSchedulePicker }: TasksViewP
               </option>
             ))}
           </select>
+          {!hasFrog && (
+            <label className="frog-checkbox-label">
+              <input
+                type="checkbox"
+                checked={taskIsFrog}
+                onChange={(e) => setTaskIsFrog(e.target.checked)}
+              />
+              <span><FrogIcon size={20} /> Make this the frog for this day</span>
+            </label>
+          )}
           <div className="task-form-actions">
             <button className="btn-save" onClick={addTask} disabled={!taskText.trim()}>
               Add Task
@@ -208,6 +284,7 @@ export function TasksView({ onOpenDatePicker, onOpenSchedulePicker }: TasksViewP
                 setTaskText("");
                 setTaskDescription("");
                 setTaskGoalId(null);
+                setTaskIsFrog(false);
               }}
             >
               Cancel
@@ -244,7 +321,7 @@ export function TasksView({ onOpenDatePicker, onOpenSchedulePicker }: TasksViewP
               <div
                 key={task.id}
                 ref={(el) => { taskRefs.current[index] = el; }}
-                className={`task-card ${task.completed ? "completed" : ""} ${isEditing ? "editing" : ""} ${isMoved ? "moved" : ""} ${isDragOver ? "drag-over" : ""} ${isDragging ? "dragging" : ""}`}
+                className={`task-card ${task.completed ? "completed" : ""} ${isEditing ? "editing" : ""} ${isMoved ? "moved" : ""} ${isDragOver ? "drag-over" : ""} ${isDragging ? "dragging" : ""} ${frogDropTarget === task.id ? "frog-drop-target" : ""} ${task.isFrog ? "is-frog" : ""}`}
                 onMouseDown={canDrag ? (e) => handleMouseDown(e, index) : undefined}
               >
                 {isEditing ? (
@@ -278,6 +355,14 @@ export function TasksView({ onOpenDatePicker, onOpenSchedulePicker }: TasksViewP
                         </option>
                       ))}
                     </select>
+                    <label className="frog-checkbox-label">
+                      <input
+                        type="checkbox"
+                        checked={editTaskIsFrog}
+                        onChange={(e) => setEditTaskIsFrog(e.target.checked)}
+                      />
+                      <span><FrogIcon size={20} /> {editTaskIsFrog ? "This is the frog for this day" : (hasFrog ? "Make this the frog (replaces current)" : "Make this the frog")}</span>
+                    </label>
                     <div className="task-form-actions">
                       <button className="btn-save" onClick={updateTask} disabled={!editTaskText.trim()}>
                         Save
@@ -289,6 +374,15 @@ export function TasksView({ onOpenDatePicker, onOpenSchedulePicker }: TasksViewP
                   </div>
                 ) : (
                   <>
+                    {task.isFrog && (
+                      <span
+                        className={`frog-indicator draggable ${isDraggingFrog ? "dragging" : ""}`}
+                        onMouseDown={handleFrogDragStart}
+                        title="Drag to another task to reassign frog"
+                      >
+                        <FrogIcon size={26} />
+                      </span>
+                    )}
                     <button
                       className={`checkbox ${isMoved ? "disabled" : ""}`}
                       onClick={() => !isMoved && toggleTaskComplete(task.id)}

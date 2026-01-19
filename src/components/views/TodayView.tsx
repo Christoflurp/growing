@@ -6,6 +6,7 @@ import { useAppData } from "../../context/AppDataContext";
 import { getGreeting, formatDateTime } from "../../utils/formatUtils";
 import { getTodayDate } from "../../utils/dateUtils";
 import { NavView } from "../../types";
+import { FrogIcon } from "../shared/FrogIcon";
 
 interface TodayViewProps {
   currentTime: Date;
@@ -19,6 +20,8 @@ export function TodayView({ currentTime, onNavigate }: TodayViewProps) {
 
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const [isDraggingFrog, setIsDraggingFrog] = useState(false);
+  const [frogDropTarget, setFrogDropTarget] = useState<string | null>(null);
   const taskRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   const {
@@ -30,6 +33,8 @@ export function TodayView({ currentTime, onNavigate }: TodayViewProps) {
     setTaskDescription,
     taskGoalId,
     setTaskGoalId,
+    taskIsFrog,
+    setTaskIsFrog,
     editingTaskId,
     editTaskText,
     setEditTaskText,
@@ -37,7 +42,10 @@ export function TodayView({ currentTime, onNavigate }: TodayViewProps) {
     setEditTaskDescription,
     editTaskGoalId,
     setEditTaskGoalId,
+    editTaskIsFrog,
+    setEditTaskIsFrog,
     getTodayTasks,
+    getFrogForDate,
     addTask,
     toggleTaskComplete,
     deleteTask: performDeleteTask,
@@ -45,6 +53,8 @@ export function TodayView({ currentTime, onNavigate }: TodayViewProps) {
     cancelEditingTask,
     updateTask,
     reorderTasks,
+    setFrogTask,
+    clearFrog,
   } = useTasks();
 
   const deleteTask = (taskId: string) => {
@@ -55,7 +65,7 @@ export function TodayView({ currentTime, onNavigate }: TodayViewProps) {
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>, index: number) => {
     const target = e.target as HTMLElement;
-    if (target.closest("button") || target.closest("input") || target.closest("textarea") || target.closest("select")) {
+    if (target.closest("button") || target.closest("input") || target.closest("textarea") || target.closest("select") || target.closest(".frog-indicator")) {
       return;
     }
     e.preventDefault();
@@ -99,6 +109,52 @@ export function TodayView({ currentTime, onNavigate }: TodayViewProps) {
       window.removeEventListener("mouseup", handleMouseUp);
     };
   }, [draggedIndex, dragOverIndex, getTodayTasks, reorderTasks]);
+
+  const today = getTodayDate();
+  const hasFrog = !!getFrogForDate(today);
+
+  const handleFrogDragStart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingFrog(true);
+  };
+
+  useEffect(() => {
+    if (!isDraggingFrog) return;
+    const tasks = getTodayTasks();
+
+    const handleMouseMove = (e: MouseEvent) => {
+      for (let i = 0; i < tasks.length; i++) {
+        const ref = taskRefs.current[i];
+        if (!ref) continue;
+        const rect = ref.getBoundingClientRect();
+        if (e.clientY >= rect.top && e.clientY <= rect.bottom && e.clientX >= rect.left && e.clientX <= rect.right) {
+          if (!tasks[i].isFrog) {
+            setFrogDropTarget(tasks[i].id);
+          }
+          return;
+        }
+      }
+      setFrogDropTarget(null);
+    };
+
+    const handleMouseUp = async () => {
+      if (frogDropTarget) {
+        await setFrogTask(frogDropTarget, today);
+      } else if (hasFrog) {
+        await clearFrog(today);
+      }
+      setIsDraggingFrog(false);
+      setFrogDropTarget(null);
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [isDraggingFrog, frogDropTarget, getTodayTasks, setFrogTask, clearFrog, hasFrog, today]);
 
   return (
     <div className="view today-view">
@@ -144,12 +200,23 @@ export function TodayView({ currentTime, onNavigate }: TodayViewProps) {
       <div className={`today-tasks-card entrance-4 ${getTodayTasks().length === 0 ? "empty" : ""}`}>
         <div className="today-tasks-header">
           <h2>Today's Tasks</h2>
-          <button className="header-action" onClick={() => setShowTaskForm(true)}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <line x1="12" y1="5" x2="12" y2="19" />
-              <line x1="5" y1="12" x2="19" y2="12" />
-            </svg>
-          </button>
+          <div className="header-actions">
+            {!hasFrog && (
+              <span
+                className={`frog-drag-source ${isDraggingFrog ? "dragging" : ""}`}
+                onMouseDown={handleFrogDragStart}
+                title="Drag onto a task to mark it as today's frog (most important task)"
+              >
+                <FrogIcon size={32} />
+              </span>
+            )}
+            <button className="header-action" onClick={() => setShowTaskForm(true)}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+            </button>
+          </div>
         </div>
 
         {showTaskForm && (
@@ -170,6 +237,7 @@ export function TodayView({ currentTime, onNavigate }: TodayViewProps) {
                   setTaskText("");
                   setTaskDescription("");
                   setTaskGoalId(null);
+                  setTaskIsFrog(false);
                 }
               }}
             />
@@ -191,6 +259,16 @@ export function TodayView({ currentTime, onNavigate }: TodayViewProps) {
                 </option>
               ))}
             </select>
+            {!hasFrog && (
+              <label className="frog-checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={taskIsFrog}
+                  onChange={(e) => setTaskIsFrog(e.target.checked)}
+                />
+                <span><FrogIcon size={20} /> Make this today's frog</span>
+              </label>
+            )}
             <div className="task-form-actions">
               <button
                 className="btn-save"
@@ -206,6 +284,7 @@ export function TodayView({ currentTime, onNavigate }: TodayViewProps) {
                   setTaskText("");
                   setTaskDescription("");
                   setTaskGoalId(null);
+                  setTaskIsFrog(false);
                 }}
               >
                 Cancel
@@ -239,7 +318,7 @@ export function TodayView({ currentTime, onNavigate }: TodayViewProps) {
                 <div
                   key={task.id}
                   ref={(el) => { taskRefs.current[index] = el; }}
-                  className={`task-card ${task.completed ? "completed" : ""} ${isEditing ? "editing" : ""} ${isDragOver ? "drag-over" : ""} ${isDragging ? "dragging" : ""}`}
+                  className={`task-card ${task.completed ? "completed" : ""} ${isEditing ? "editing" : ""} ${isDragOver ? "drag-over" : ""} ${isDragging ? "dragging" : ""} ${frogDropTarget === task.id ? "frog-drop-target" : ""} ${task.isFrog ? "is-frog" : ""}`}
                   onMouseDown={canDrag ? (e) => handleMouseDown(e, index) : undefined}
                 >
                   {isEditing ? (
@@ -277,6 +356,14 @@ export function TodayView({ currentTime, onNavigate }: TodayViewProps) {
                           </option>
                         ))}
                       </select>
+                      <label className="frog-checkbox-label">
+                        <input
+                          type="checkbox"
+                          checked={editTaskIsFrog}
+                          onChange={(e) => setEditTaskIsFrog(e.target.checked)}
+                        />
+                        <span><FrogIcon size={20} /> {editTaskIsFrog ? "This is today's frog" : (hasFrog ? "Make this the frog (replaces current)" : "Make this today's frog")}</span>
+                      </label>
                       <div className="task-form-actions">
                         <button
                           className="btn-save"
@@ -292,6 +379,15 @@ export function TodayView({ currentTime, onNavigate }: TodayViewProps) {
                     </div>
                   ) : (
                     <>
+                      {task.isFrog && (
+                        <span
+                          className={`frog-indicator draggable ${isDraggingFrog ? "dragging" : ""}`}
+                          onMouseDown={handleFrogDragStart}
+                          title="Drag to another task to reassign frog"
+                        >
+                          <FrogIcon size={26} />
+                        </span>
+                      )}
                       <button
                         className="checkbox"
                         onClick={() => toggleTaskComplete(task.id)}

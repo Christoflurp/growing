@@ -52,6 +52,7 @@ export interface DailyTask {
   date: string;
   movedToDate?: string;
   order?: number;
+  isFrog?: boolean;
 }
 
 export interface Todo {

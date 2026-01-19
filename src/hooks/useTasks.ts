@@ -10,31 +10,47 @@ export function useTasks() {
   const [taskText, setTaskText] = useState("");
   const [taskDescription, setTaskDescription] = useState("");
   const [taskGoalId, setTaskGoalId] = useState<string | null>(null);
+  const [taskIsFrog, setTaskIsFrog] = useState(false);
 
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [editTaskText, setEditTaskText] = useState("");
   const [editTaskDescription, setEditTaskDescription] = useState("");
   const [editTaskGoalId, setEditTaskGoalId] = useState<string | null>(null);
+  const [editTaskIsFrog, setEditTaskIsFrog] = useState(false);
 
   const [taskEditModal, setTaskEditModal] = useState<DailyTask | null>(null);
   const [modalTaskText, setModalTaskText] = useState("");
   const [modalTaskDescription, setModalTaskDescription] = useState("");
   const [modalTaskGoalId, setModalTaskGoalId] = useState<string | null>(null);
 
+  const sortTasks = (tasks: DailyTask[]) => {
+    return tasks.sort((a, b) => {
+      if (a.isFrog && !b.isFrog) return -1;
+      if (!a.isFrog && b.isFrog) return 1;
+      return (a.order ?? Infinity) - (b.order ?? Infinity);
+    });
+  };
+
   const getTodayTasks = useCallback(() => {
     if (!data) return [];
     const today = getTodayDate();
-    return (data.dailyTasks || [])
-      .filter((task) => task.date === today)
-      .sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity));
+    const tasks = (data.dailyTasks || []).filter((task) => task.date === today);
+    return sortTasks(tasks);
   }, [data]);
 
   const getTasksForDate = useCallback(
     (date: string) => {
       if (!data) return [];
-      return (data.dailyTasks || [])
-        .filter((task) => task.date === date)
-        .sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity));
+      const tasks = (data.dailyTasks || []).filter((task) => task.date === date);
+      return sortTasks(tasks);
+    },
+    [data]
+  );
+
+  const getFrogForDate = useCallback(
+    (date: string) => {
+      if (!data) return null;
+      return (data.dailyTasks || []).find((task) => task.date === date && task.isFrog) || null;
     },
     [data]
   );
@@ -69,12 +85,15 @@ export function useTasks() {
       completed: false,
       date: today,
       order: 0,
+      isFrog: taskIsFrog || undefined,
     };
-    const updatedTasks = (data.dailyTasks || []).map((task) =>
-      task.date === today && task.order !== undefined
-        ? { ...task, order: task.order + 1 }
-        : task
-    );
+    const updatedTasks = (data.dailyTasks || []).map((task) => {
+      if (task.date !== today) return task;
+      const updates: Partial<DailyTask> = {};
+      if (task.order !== undefined) updates.order = task.order + 1;
+      if (taskIsFrog && task.isFrog) updates.isFrog = undefined;
+      return Object.keys(updates).length > 0 ? { ...task, ...updates } : task;
+    });
     const newData = {
       ...data,
       dailyTasks: [newTask, ...updatedTasks],
@@ -83,8 +102,9 @@ export function useTasks() {
     setTaskText("");
     setTaskDescription("");
     setTaskGoalId(null);
+    setTaskIsFrog(false);
     setShowTaskForm(false);
-  }, [data, saveData, taskText, taskDescription, taskGoalId]);
+  }, [data, saveData, taskText, taskDescription, taskGoalId, taskIsFrog]);
 
   const toggleTaskComplete = useCallback(
     async (taskId: string) => {
@@ -123,6 +143,7 @@ export function useTasks() {
     setEditTaskText(task.text);
     setEditTaskDescription(task.description);
     setEditTaskGoalId(task.goalId || null);
+    setEditTaskIsFrog(task.isFrog || false);
   }, []);
 
   const cancelEditingTask = useCallback(() => {
@@ -130,26 +151,36 @@ export function useTasks() {
     setEditTaskText("");
     setEditTaskDescription("");
     setEditTaskGoalId(null);
+    setEditTaskIsFrog(false);
   }, []);
 
   const updateTask = useCallback(async () => {
     if (!data || !editingTaskId || !editTaskText.trim()) return;
+    const editingTask = (data.dailyTasks || []).find((t) => t.id === editingTaskId);
+    if (!editingTask) return;
+    const taskDate = editingTask.date;
     const newData = {
       ...data,
-      dailyTasks: (data.dailyTasks || []).map((task) =>
-        task.id === editingTaskId
-          ? {
-              ...task,
-              text: editTaskText.trim(),
-              description: editTaskDescription.trim(),
-              goalId: editTaskGoalId || undefined,
-            }
-          : task
-      ),
+      dailyTasks: (data.dailyTasks || []).map((task) => {
+        if (task.id === editingTaskId) {
+          return {
+            ...task,
+            text: editTaskText.trim(),
+            description: editTaskDescription.trim(),
+            goalId: editTaskGoalId || undefined,
+            isFrog: editTaskIsFrog || undefined,
+            order: editTaskIsFrog ? 0 : task.order,
+          };
+        }
+        if (editTaskIsFrog && task.date === taskDate && task.isFrog) {
+          return { ...task, isFrog: undefined };
+        }
+        return task;
+      }),
     };
     await saveData(newData);
     cancelEditingTask();
-  }, [data, saveData, editingTaskId, editTaskText, editTaskDescription, editTaskGoalId, cancelEditingTask]);
+  }, [data, saveData, editingTaskId, editTaskText, editTaskDescription, editTaskGoalId, editTaskIsFrog, cancelEditingTask]);
 
   const openTaskEditModal = useCallback((task: DailyTask) => {
     setTaskEditModal(task);
@@ -229,6 +260,43 @@ export function useTasks() {
     [data, saveData, getTasksForDate]
   );
 
+  const setFrogTask = useCallback(
+    async (taskId: string, date: string) => {
+      if (!data) return;
+      const tasksForDate = (data.dailyTasks || []).filter((t) => t.date === date);
+      const targetTask = tasksForDate.find((t) => t.id === taskId);
+      if (!targetTask || targetTask.isFrog) return;
+      const newData = {
+        ...data,
+        dailyTasks: (data.dailyTasks || []).map((task) => {
+          if (task.date !== date) return task;
+          if (task.id === taskId) {
+            return { ...task, isFrog: true, order: 0 };
+          }
+          const wasFrog = task.isFrog;
+          const newOrder = (task.order ?? 0) + 1;
+          return { ...task, isFrog: undefined, order: wasFrog ? newOrder : newOrder };
+        }),
+      };
+      await saveData(newData);
+    },
+    [data, saveData]
+  );
+
+  const clearFrog = useCallback(
+    async (date: string) => {
+      if (!data) return;
+      const newData = {
+        ...data,
+        dailyTasks: (data.dailyTasks || []).map((task) =>
+          task.date === date && task.isFrog ? { ...task, isFrog: undefined } : task
+        ),
+      };
+      await saveData(newData);
+    },
+    [data, saveData]
+  );
+
   return {
     showTaskForm,
     setShowTaskForm,
@@ -238,6 +306,8 @@ export function useTasks() {
     setTaskDescription,
     taskGoalId,
     setTaskGoalId,
+    taskIsFrog,
+    setTaskIsFrog,
     editingTaskId,
     editTaskText,
     setEditTaskText,
@@ -245,6 +315,8 @@ export function useTasks() {
     setEditTaskDescription,
     editTaskGoalId,
     setEditTaskGoalId,
+    editTaskIsFrog,
+    setEditTaskIsFrog,
     taskEditModal,
     modalTaskText,
     setModalTaskText,
@@ -254,6 +326,7 @@ export function useTasks() {
     setModalTaskGoalId,
     getTodayTasks,
     getTasksForDate,
+    getFrogForDate,
     getFutureTasks,
     getIncompleteTasksBeforeDate,
     addTask,
@@ -267,5 +340,7 @@ export function useTasks() {
     saveTaskFromModal,
     carryForwardTask,
     reorderTasks,
+    setFrogTask,
+    clearFrog,
   };
 }
