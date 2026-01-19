@@ -1,8 +1,10 @@
+import { useState, useRef, useEffect } from "react";
 import { useTasks } from "../../hooks/useTasks";
 import { useGoals } from "../../hooks/useGoals";
 import { useConfirmModal } from "../../context/ConfirmModalContext";
 import { useAppData } from "../../context/AppDataContext";
 import { getGreeting, formatDateTime } from "../../utils/formatUtils";
+import { getTodayDate } from "../../utils/dateUtils";
 import { NavView } from "../../types";
 
 interface TodayViewProps {
@@ -14,6 +16,11 @@ export function TodayView({ currentTime, onNavigate }: TodayViewProps) {
   const { data } = useAppData();
   const { showConfirm } = useConfirmModal();
   const { getAllGoals, getGoalById } = useGoals();
+
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const taskRefs = useRef<(HTMLDivElement | null)[]>([]);
+
   const {
     showTaskForm,
     setShowTaskForm,
@@ -37,6 +44,7 @@ export function TodayView({ currentTime, onNavigate }: TodayViewProps) {
     startEditingTask,
     cancelEditingTask,
     updateTask,
+    reorderTasks,
   } = useTasks();
 
   const deleteTask = (taskId: string) => {
@@ -44,6 +52,53 @@ export function TodayView({ currentTime, onNavigate }: TodayViewProps) {
       performDeleteTask(taskId);
     });
   };
+
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>, index: number) => {
+    const target = e.target as HTMLElement;
+    if (target.closest("button") || target.closest("input") || target.closest("textarea") || target.closest("select")) {
+      return;
+    }
+    e.preventDefault();
+    setDraggedIndex(index);
+  };
+
+  useEffect(() => {
+    if (draggedIndex === null) return;
+    const today = getTodayDate();
+    const tasks = getTodayTasks();
+
+    const handleMouseMove = (e: MouseEvent) => {
+      for (let i = 0; i < tasks.length; i++) {
+        const ref = taskRefs.current[i];
+        if (!ref || i === draggedIndex) continue;
+        const rect = ref.getBoundingClientRect();
+        const midY = rect.top + rect.height / 2;
+        if (e.clientY >= rect.top && e.clientY < midY) {
+          if (dragOverIndex !== i) setDragOverIndex(i);
+          return;
+        }
+        if (e.clientY >= midY && e.clientY <= rect.bottom) {
+          if (dragOverIndex !== i) setDragOverIndex(i);
+          return;
+        }
+      }
+    };
+
+    const handleMouseUp = async () => {
+      if (draggedIndex !== null && dragOverIndex !== null && draggedIndex !== dragOverIndex) {
+        await reorderTasks(today, draggedIndex, dragOverIndex);
+      }
+      setDraggedIndex(null);
+      setDragOverIndex(null);
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [draggedIndex, dragOverIndex, getTodayTasks, reorderTasks]);
 
   return (
     <div className="view today-view">
@@ -173,12 +228,20 @@ export function TodayView({ currentTime, onNavigate }: TodayViewProps) {
             </button>
           </div>
         ) : (
-          <div className="today-tasks">
-            {getTodayTasks().map((task) => {
+          <div className={`today-tasks ${draggedIndex !== null ? "dragging-active" : ""}`}>
+            {getTodayTasks().map((task, index) => {
               const goalInfo = task.goalId ? getGoalById(task.goalId) : null;
               const isEditing = editingTaskId === task.id;
+              const isDragOver = dragOverIndex === index && draggedIndex !== index;
+              const isDragging = draggedIndex === index;
+              const canDrag = !isEditing;
               return (
-                <div key={task.id} className={`task-card ${task.completed ? "completed" : ""} ${isEditing ? "editing" : ""}`}>
+                <div
+                  key={task.id}
+                  ref={(el) => { taskRefs.current[index] = el; }}
+                  className={`task-card ${task.completed ? "completed" : ""} ${isEditing ? "editing" : ""} ${isDragOver ? "drag-over" : ""} ${isDragging ? "dragging" : ""}`}
+                  onMouseDown={canDrag ? (e) => handleMouseDown(e, index) : undefined}
+                >
                   {isEditing ? (
                     <div className="task-edit-form">
                       <input

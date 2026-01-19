@@ -2146,6 +2146,14 @@ select:disabled {
   gap: 10px;
 }
 
+.task-list.dragging-active {
+  cursor: grabbing;
+}
+
+.task-list.dragging-active .task-card {
+  cursor: grabbing;
+}
+
 .task-card {
   background: var(--bg-card);
   border-radius: var(--radius-md);
@@ -2154,6 +2162,34 @@ select:disabled {
   display: flex;
   align-items: flex-start;
   gap: 12px;
+  cursor: grab;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.task-card:active {
+  cursor: grabbing;
+}
+
+.task-card.dragging {
+  opacity: 0.5;
+  transform: scale(0.96);
+  border: 2px dashed var(--accent);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  background: var(--bg-secondary);
+}
+
+.task-card.drag-over {
+  border: 2px solid var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-muted), inset 0 0 0 1px var(--accent);
+  transform: scale(1.02);
+  background: var(--bg-hover);
+}
+
+.task-card.editing,
+.task-card.moved {
+  cursor: default;
 }
 
 .task-card.completed {
@@ -2357,6 +2393,14 @@ select:disabled {
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+.today-tasks.dragging-active {
+  cursor: grabbing;
+}
+
+.today-tasks.dragging-active .task-card {
+  cursor: grabbing;
 }
 
 .today-empty {

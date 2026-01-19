@@ -18,7 +18,18 @@ use base64::{Engine as _, engine::general_purpose::STANDARD as BASE64};
 use uuid::Uuid;
 
 fn get_data_dir(app: &AppHandle) -> PathBuf {
-    app.path().app_local_data_dir().expect("Failed to get app data dir")
+    #[cfg(debug_assertions)]
+    {
+        let dev_dir = std::env::current_dir().unwrap_or_default().join("dev-data");
+        if !dev_dir.exists() {
+            fs::create_dir_all(&dev_dir).ok();
+        }
+        return dev_dir;
+    }
+    #[cfg(not(debug_assertions))]
+    {
+        app.path().app_local_data_dir().expect("Failed to get app data dir")
+    }
 }
 
 fn get_data_path(app: &AppHandle) -> PathBuf {

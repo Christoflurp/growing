@@ -51,6 +51,7 @@ export interface DailyTask {
   completedAt?: string;
   date: string;
   movedToDate?: string;
+  order?: number;
 }
 
 export interface Todo {

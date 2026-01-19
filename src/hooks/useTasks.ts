@@ -24,13 +24,17 @@ export function useTasks() {
   const getTodayTasks = useCallback(() => {
     if (!data) return [];
     const today = getTodayDate();
-    return (data.dailyTasks || []).filter((task) => task.date === today);
+    return (data.dailyTasks || [])
+      .filter((task) => task.date === today)
+      .sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity));
   }, [data]);
 
   const getTasksForDate = useCallback(
     (date: string) => {
       if (!data) return [];
-      return (data.dailyTasks || []).filter((task) => task.date === date);
+      return (data.dailyTasks || [])
+        .filter((task) => task.date === date)
+        .sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity));
     },
     [data]
   );
@@ -56,17 +60,24 @@ export function useTasks() {
 
   const addTask = useCallback(async () => {
     if (!data || !taskText.trim()) return;
+    const today = getTodayDate();
     const newTask: DailyTask = {
       id: crypto.randomUUID(),
       text: taskText.trim(),
       description: taskDescription.trim(),
       goalId: taskGoalId || undefined,
       completed: false,
-      date: getTodayDate(),
+      date: today,
+      order: 0,
     };
+    const updatedTasks = (data.dailyTasks || []).map((task) =>
+      task.date === today && task.order !== undefined
+        ? { ...task, order: task.order + 1 }
+        : task
+    );
     const newData = {
       ...data,
-      dailyTasks: [newTask, ...(data.dailyTasks || [])],
+      dailyTasks: [newTask, ...updatedTasks],
     };
     await saveData(newData);
     setTaskText("");
@@ -184,17 +195,38 @@ export function useTasks() {
         goalId: task.goalId,
         completed: false,
         date: today,
+        order: 0,
       };
+      const updatedTasks = (data.dailyTasks || []).map((t) => {
+        if (t.id === task.id) return { ...t, movedToDate: today };
+        if (t.date === today && t.order !== undefined) return { ...t, order: t.order + 1 };
+        return t;
+      });
       const newData = {
         ...data,
-        dailyTasks: (data.dailyTasks || []).map((t) =>
-          t.id === task.id ? { ...t, movedToDate: today } : t
-        ),
+        dailyTasks: [newTask, ...updatedTasks],
       };
-      newData.dailyTasks = [newTask, ...newData.dailyTasks];
       await saveData(newData);
     },
     [data, saveData]
+  );
+
+  const reorderTasks = useCallback(
+    async (date: string, fromIndex: number, toIndex: number) => {
+      if (!data || fromIndex === toIndex) return;
+      const tasksForDate = getTasksForDate(date);
+      const [movedTask] = tasksForDate.splice(fromIndex, 1);
+      tasksForDate.splice(toIndex, 0, movedTask);
+      const reorderedIds = new Map(tasksForDate.map((t, i) => [t.id, i]));
+      const newData = {
+        ...data,
+        dailyTasks: (data.dailyTasks || []).map((task) =>
+          reorderedIds.has(task.id) ? { ...task, order: reorderedIds.get(task.id) } : task
+        ),
+      };
+      await saveData(newData);
+    },
+    [data, saveData, getTasksForDate]
   );
 
   return {
@@ -234,5 +266,6 @@ export function useTasks() {
     closeTaskEditModal,
     saveTaskFromModal,
     carryForwardTask,
+    reorderTasks,
   };
 }
