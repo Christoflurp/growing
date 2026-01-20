@@ -155,7 +155,8 @@ export function TasksView({ onOpenDatePicker, onOpenSchedulePicker }: TasksViewP
     };
   }, [draggedIndex, dragOverIndex, selectedDate, getTasksForDate, reorderTasks]);
 
-  const hasFrog = !!getFrogForDate(selectedDate);
+  const frogEnabled = data?.frogEnabled !== false;
+  const hasFrog = frogEnabled && !!getFrogForDate(selectedDate);
 
   const handleFrogDragStart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -220,7 +221,7 @@ export function TasksView({ onOpenDatePicker, onOpenSchedulePicker }: TasksViewP
           )}
         </div>
         <div className="header-actions">
-          {!hasFrog && (
+          {frogEnabled && !hasFrog && (
             <span
               className={`frog-drag-source ${isDraggingFrog ? "dragging" : ""}`}
               onMouseDown={handleFrogDragStart}
@@ -263,7 +264,7 @@ export function TasksView({ onOpenDatePicker, onOpenSchedulePicker }: TasksViewP
               </option>
             ))}
           </select>
-          {!hasFrog && (
+          {frogEnabled && !hasFrog && (
             <label className="frog-checkbox-label">
               <input
                 type="checkbox"
@@ -355,14 +356,16 @@ export function TasksView({ onOpenDatePicker, onOpenSchedulePicker }: TasksViewP
                         </option>
                       ))}
                     </select>
-                    <label className="frog-checkbox-label">
-                      <input
-                        type="checkbox"
-                        checked={editTaskIsFrog}
-                        onChange={(e) => setEditTaskIsFrog(e.target.checked)}
-                      />
-                      <span><FrogIcon size={20} /> {editTaskIsFrog ? "This is the frog for this day" : (hasFrog ? "Make this the frog (replaces current)" : "Make this the frog")}</span>
-                    </label>
+                    {frogEnabled && (
+                      <label className="frog-checkbox-label">
+                        <input
+                          type="checkbox"
+                          checked={editTaskIsFrog}
+                          onChange={(e) => setEditTaskIsFrog(e.target.checked)}
+                        />
+                        <span><FrogIcon size={20} /> {editTaskIsFrog ? "This is the frog for this day" : (hasFrog ? "Make this the frog (replaces current)" : "Make this the frog")}</span>
+                      </label>
+                    )}
                     <div className="task-form-actions">
                       <button className="btn-save" onClick={updateTask} disabled={!editTaskText.trim()}>
                         Save
@@ -374,7 +377,7 @@ export function TasksView({ onOpenDatePicker, onOpenSchedulePicker }: TasksViewP
                   </div>
                 ) : (
                   <>
-                    {task.isFrog && (
+                    {frogEnabled && task.isFrog && (
                       <span
                         className={`frog-indicator draggable ${isDraggingFrog ? "dragging" : ""}`}
                         onMouseDown={handleFrogDragStart}

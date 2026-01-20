@@ -252,6 +252,34 @@ export function SettingsView() {
           </div>
         </div>
       </div>
+
+      <div className="settings-group">
+        <h2>Features</h2>
+        <div className="setting-item">
+          <div className="setting-info">
+            <span className="setting-name">Apple Music integration</span>
+            <span className="setting-desc">Show now playing bar below navigation</span>
+          </div>
+          <button
+            className={`toggle ${data.appleMusicEnabled !== false ? "on" : ""}`}
+            onClick={() => saveData({ ...data, appleMusicEnabled: data.appleMusicEnabled === false })}
+          >
+            <span className="toggle-knob" />
+          </button>
+        </div>
+        <div className="setting-item">
+          <div className="setting-info">
+            <span className="setting-name">Eat the Frog</span>
+            <span className="setting-desc">Mark one task as your daily priority</span>
+          </div>
+          <button
+            className={`toggle ${data.frogEnabled !== false ? "on" : ""}`}
+            onClick={() => saveData({ ...data, frogEnabled: data.frogEnabled === false })}
+          >
+            <span className="toggle-knob" />
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

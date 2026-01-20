@@ -111,7 +111,8 @@ export function TodayView({ currentTime, onNavigate }: TodayViewProps) {
   }, [draggedIndex, dragOverIndex, getTodayTasks, reorderTasks]);
 
   const today = getTodayDate();
-  const hasFrog = !!getFrogForDate(today);
+  const frogEnabled = data?.frogEnabled !== false;
+  const hasFrog = frogEnabled && !!getFrogForDate(today);
 
   const handleFrogDragStart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -201,7 +202,7 @@ export function TodayView({ currentTime, onNavigate }: TodayViewProps) {
         <div className="today-tasks-header">
           <h2>Today's Tasks</h2>
           <div className="header-actions">
-            {!hasFrog && (
+            {frogEnabled && !hasFrog && (
               <span
                 className={`frog-drag-source ${isDraggingFrog ? "dragging" : ""}`}
                 onMouseDown={handleFrogDragStart}
@@ -259,7 +260,7 @@ export function TodayView({ currentTime, onNavigate }: TodayViewProps) {
                 </option>
               ))}
             </select>
-            {!hasFrog && (
+            {frogEnabled && !hasFrog && (
               <label className="frog-checkbox-label">
                 <input
                   type="checkbox"
@@ -356,14 +357,16 @@ export function TodayView({ currentTime, onNavigate }: TodayViewProps) {
                           </option>
                         ))}
                       </select>
-                      <label className="frog-checkbox-label">
-                        <input
-                          type="checkbox"
-                          checked={editTaskIsFrog}
-                          onChange={(e) => setEditTaskIsFrog(e.target.checked)}
-                        />
-                        <span><FrogIcon size={20} /> {editTaskIsFrog ? "This is today's frog" : (hasFrog ? "Make this the frog (replaces current)" : "Make this today's frog")}</span>
-                      </label>
+                      {frogEnabled && (
+                        <label className="frog-checkbox-label">
+                          <input
+                            type="checkbox"
+                            checked={editTaskIsFrog}
+                            onChange={(e) => setEditTaskIsFrog(e.target.checked)}
+                          />
+                          <span><FrogIcon size={20} /> {editTaskIsFrog ? "This is today's frog" : (hasFrog ? "Make this the frog (replaces current)" : "Make this today's frog")}</span>
+                        </label>
+                      )}
                       <div className="task-form-actions">
                         <button
                           className="btn-save"
@@ -379,7 +382,7 @@ export function TodayView({ currentTime, onNavigate }: TodayViewProps) {
                     </div>
                   ) : (
                     <>
-                      {task.isFrog && (
+                      {frogEnabled && task.isFrog && (
                         <span
                           className={`frog-indicator draggable ${isDraggingFrog ? "dragging" : ""}`}
                           onMouseDown={handleFrogDragStart}
