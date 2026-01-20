@@ -93,6 +93,18 @@ export interface AppData {
   darkMode?: boolean;
   userName?: string;
   onboardingComplete?: boolean;
+  appleMusicEnabled?: boolean;
+  frogEnabled?: boolean;
 }
 
 export type NavView = "today" | "tasks" | "goals" | "notes" | "bragdoc" | "settings";
+
+export interface NowPlayingInfo {
+  is_playing: boolean;
+  title?: string;
+  artist?: string;
+  album?: string;
+  album_year?: number;
+  duration?: number;
+  position?: number;
+}

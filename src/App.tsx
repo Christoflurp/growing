@@ -1,7 +1,10 @@
 import { useEffect, useState, useCallback } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
+import { listen } from "@tauri-apps/api/event";
+import { invoke } from "@tauri-apps/api/core";
 import { register, unregister } from "@tauri-apps/plugin-global-shortcut";
 import Navigation from "./components/Navigation";
+import { NowPlayingBar } from "./components/shared/NowPlayingBar";
 import { AppDataProvider, useAppData } from "./context/AppDataContext";
 import { ConfirmModalProvider, useConfirmModal } from "./context/ConfirmModalContext";
 import { useCalendar } from "./hooks/useCalendar";
@@ -27,7 +30,7 @@ import { GoalsView } from "./components/views/GoalsView";
 import { NotesView } from "./components/views/NotesView";
 import { BragDocView } from "./components/views/BragDocView";
 import { SettingsView } from "./components/views/SettingsView";
-import { NavView, Todo } from "./types";
+import { NavView, Todo, NowPlayingInfo } from "./types";
 import { getTodayDate } from "./utils/dateUtils";
 import { formatDateHeader } from "./utils/formatUtils";
 import { createScaffoldData } from "./utils/scaffoldData";
@@ -36,9 +39,10 @@ import "./App.css";
 interface AppContentProps {
   alertOverlay: { show: boolean; title: string; body: string; type: string } | null;
   onDismissAlert: () => void;
+  nowPlaying: NowPlayingInfo | null;
 }
 
-function AppContent({ alertOverlay, onDismissAlert }: AppContentProps) {
+function AppContent({ alertOverlay, onDismissAlert, nowPlaying }: AppContentProps) {
   const { data, saveData } = useAppData();
 
   const {
@@ -258,6 +262,8 @@ function AppContent({ alertOverlay, onDismissAlert }: AppContentProps) {
         onOpenBugReports={() => setShowBugReports(true)}
       />
 
+      {data.appleMusicEnabled !== false && <NowPlayingBar nowPlaying={nowPlaying} />}
+
       <main className="main-content">
         {activeView === "today" && (
           <TodayView currentTime={currentTime} onNavigate={setActiveView} />
@@ -366,6 +372,19 @@ function App() {
     body: string;
     type: string;
   } | null>(null);
+  const [nowPlaying, setNowPlaying] = useState<NowPlayingInfo | null>(null);
+
+  useEffect(() => {
+    invoke<NowPlayingInfo>("get_now_playing").then(setNowPlaying);
+
+    const unlisten = listen<NowPlayingInfo>("now-playing-changed", (event) => {
+      setNowPlaying(event.payload);
+    });
+
+    return () => {
+      unlisten.then((fn) => fn());
+    };
+  }, []);
 
   const handleAlertTriggered = useCallback(
     (alert: { type: string; title: string; body: string }) => {
@@ -392,6 +411,7 @@ function App() {
         <AppContent
           alertOverlay={alertOverlay}
           onDismissAlert={() => setAlertOverlay(null)}
+          nowPlaying={nowPlaying}
         />
       </ConfirmModalProvider>
     </AppDataProvider>

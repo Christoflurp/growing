@@ -10,12 +10,101 @@ use tauri::{
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::PathBuf;
+use std::process::Command;
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
 use chrono::{Local, Timelike, Datelike, Weekday};
 use base64::{Engine as _, engine::general_purpose::STANDARD as BASE64};
 use uuid::Uuid;
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+pub struct NowPlayingInfo {
+    pub is_playing: bool,
+    pub title: Option<String>,
+    pub artist: Option<String>,
+    pub album: Option<String>,
+    pub album_year: Option<i32>,
+    pub duration: Option<f64>,
+    pub position: Option<f64>,
+}
+
+#[cfg(target_os = "macos")]
+fn query_apple_music() -> NowPlayingInfo {
+    let script = r#"
+        tell application "System Events"
+            if not (exists process "Music") then
+                return "NOT_RUNNING"
+            end if
+        end tell
+        tell application "Music"
+            if player state is not playing then
+                return "NOT_PLAYING"
+            end if
+            set trackName to name of current track
+            set trackArtist to artist of current track
+            set trackAlbum to album of current track
+            set trackDuration to duration of current track
+            set trackPosition to player position
+            try
+                set trackYear to year of current track
+            on error
+                set trackYear to 0
+            end try
+            return trackName & "|||" & trackArtist & "|||" & trackAlbum & "|||" & trackYear & "|||" & trackDuration & "|||" & trackPosition
+        end tell
+    "#;
+
+    let output = Command::new("osascript")
+        .arg("-e")
+        .arg(script)
+        .output();
+
+    match output {
+        Ok(out) => {
+            let result = String::from_utf8_lossy(&out.stdout).trim().to_string();
+            if result == "NOT_RUNNING" || result == "NOT_PLAYING" || result.is_empty() {
+                return NowPlayingInfo::default();
+            }
+            let parts: Vec<&str> = result.split("|||").collect();
+            if parts.len() >= 6 {
+                NowPlayingInfo {
+                    is_playing: true,
+                    title: Some(parts[0].to_string()),
+                    artist: Some(parts[1].to_string()),
+                    album: Some(parts[2].to_string()),
+                    album_year: parts[3].parse().ok().filter(|&y| y > 0),
+                    duration: parts[4].parse().ok(),
+                    position: parts[5].parse().ok(),
+                }
+            } else {
+                NowPlayingInfo::default()
+            }
+        }
+        Err(_) => NowPlayingInfo::default(),
+    }
+}
+
+#[cfg(not(target_os = "macos"))]
+fn query_apple_music() -> NowPlayingInfo {
+    NowPlayingInfo::default()
+}
+
+#[tauri::command]
+fn get_now_playing() -> NowPlayingInfo {
+    query_apple_music()
+}
+
+#[tauri::command]
+fn open_apple_music() {
+    #[cfg(target_os = "macos")]
+    {
+        let _ = Command::new("open")
+            .arg("-a")
+            .arg("Music")
+            .spawn();
+    }
+}
 
 fn get_data_dir(app: &AppHandle) -> PathBuf {
     #[cfg(debug_assertions)]
@@ -269,10 +358,18 @@ pub struct AppData {
     pub user_name: Option<String>,
     #[serde(default, rename = "onboardingComplete")]
     pub onboarding_complete: bool,
+    #[serde(default = "default_true", rename = "appleMusicEnabled")]
+    pub apple_music_enabled: bool,
+    #[serde(default = "default_true", rename = "frogEnabled")]
+    pub frog_enabled: bool,
 }
 
 fn default_theme() -> String {
     "editorial".to_string()
+}
+
+fn default_true() -> bool {
+    true
 }
 
 #[tauri::command]
@@ -647,6 +744,72 @@ fn show_main_window(app: AppHandle) {
 }
 
 #[cfg(target_os = "macos")]
+fn start_now_playing_listener(app_handle: AppHandle) {
+    use objc::runtime::{Class, Object, Sel};
+    use objc::{msg_send, sel, sel_impl};
+    use std::sync::Once;
+
+    type Id = *mut Object;
+
+    static REGISTER_MUSIC_OBSERVER_CLASS: Once = Once::new();
+    static mut MUSIC_APP_HANDLE: Option<AppHandle> = None;
+
+    unsafe {
+        MUSIC_APP_HANDLE = Some(app_handle);
+    }
+
+    extern "C" fn handle_music_notification(_this: &Object, _sel: Sel, _notification: Id) {
+        unsafe {
+            if let Some(ref app) = MUSIC_APP_HANDLE {
+                let info = query_apple_music();
+                let _ = app.emit("now-playing-changed", &info);
+            }
+        }
+    }
+
+    REGISTER_MUSIC_OBSERVER_CLASS.call_once(|| {
+        let superclass = Class::get("NSObject").unwrap();
+        let mut decl = objc::declare::ClassDecl::new("GrowingMusicObserver", superclass).unwrap();
+
+        unsafe {
+            decl.add_method(
+                sel!(handleMusicNotification:),
+                handle_music_notification as extern "C" fn(&Object, Sel, Id),
+            );
+        }
+
+        decl.register();
+    });
+
+    unsafe {
+        let observer_class = Class::get("GrowingMusicObserver").unwrap();
+        let observer: Id = msg_send![observer_class, new];
+
+        let notification_center_class = Class::get("NSDistributedNotificationCenter").unwrap();
+        let notification_center: Id = msg_send![notification_center_class, defaultCenter];
+
+        let nsstring_class = Class::get("NSString").unwrap();
+        let notification_name: Id = msg_send![nsstring_class, stringWithUTF8String: b"com.apple.Music.playerInfo\0".as_ptr()];
+
+        let _: () = msg_send![
+            notification_center,
+            addObserver: observer
+            selector: sel!(handleMusicNotification:)
+            name: notification_name
+            object: std::ptr::null::<Object>()
+        ];
+
+        eprintln!("Apple Music listener registered");
+        let _ = observer;
+    }
+}
+
+#[cfg(not(target_os = "macos"))]
+fn start_now_playing_listener(_app_handle: AppHandle) {
+    eprintln!("Apple Music listener not supported on this platform");
+}
+
+#[cfg(target_os = "macos")]
 fn start_wake_listener(app_handle: AppHandle) {
     use objc::runtime::{Class, Object, Sel};
     use objc::{msg_send, sel, sel_impl};
@@ -769,6 +932,7 @@ pub fn run() {
 
             start_notification_scheduler(app.handle().clone());
             start_wake_listener(app.handle().clone());
+            start_now_playing_listener(app.handle().clone());
 
             Ok(())
         })
@@ -791,6 +955,8 @@ pub fn run() {
             send_delayed_notification,
             check_notification_permission,
             request_notification_permission,
+            get_now_playing,
+            open_apple_music,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
