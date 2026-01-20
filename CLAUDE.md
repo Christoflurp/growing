@@ -27,6 +27,8 @@ npm run tauri build      # Build for production
 - **Quarter-screen sizing** - Auto-sizes to 1/4 of screen on first launch
 - **Auto-reload on wake** - Data refreshes when Mac wakes from sleep
 - **Close to tray** - Closing window hides it; app keeps running
+- **Apple Music integration** - Shows now playing bar below navigation (toggleable in Settings)
+- **Eat the Frog** - Mark one task per day as priority with draggable frog icon (toggleable in Settings)
 
 ### Views (8 tabs)
 
@@ -86,6 +88,8 @@ interface AppData {
   onboardingComplete?: boolean;
   darkMode?: boolean;
   theme?: string;                    // "grove" | "editorial" | "obsidian" | "paper"
+  appleMusicEnabled?: boolean;       // Show now playing bar (default: true)
+  frogEnabled?: boolean;             // Enable eat the frog feature (default: true)
   sections: Section[];               // Goals organized by period
   notifications: NotificationSettings;
   quickNotes?: QuickNote[];
@@ -94,6 +98,15 @@ interface AppData {
   todos?: Todo[];                    // Backlog items
   featureRequests?: FeatureRequest[];
   bugReports?: BugReport[];
+}
+
+interface NowPlayingInfo {
+  is_playing: boolean;
+  title?: string;
+  artist?: string;
+  album?: string;
+  duration?: number;                 // Total duration in seconds
+  position?: number;                 // Current position in seconds
 }
 
 interface Section {
@@ -144,6 +157,8 @@ interface Todo {
 | `send_notification` | Show macOS notification with sound |
 | `check_notification_permission` | Returns: granted/denied/unknown |
 | `request_notification_permission` | Prompts user for permission |
+| `get_now_playing` | Query Apple Music for current track info |
+| `open_apple_music` | Open Apple Music application |
 
 ## Development Notes
 
@@ -157,6 +172,13 @@ interface Todo {
 
 - Position/size memory only works in **release builds**
 - Dev mode uses defaults from `tauri.conf.json`
+
+### Apple Music Integration
+
+- Uses AppleScript via `osascript` to query Music.app metadata
+- Real-time updates via NSDistributedNotificationCenter (`com.apple.Music.playerInfo`)
+- Elapsed time counts locally in React to avoid constant backend queries
+- Album year not available for streaming tracks (Apple API limitation)
 
 ### First Launch Detection
 
