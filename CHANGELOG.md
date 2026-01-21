@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Single-instance enforcement to prevent duplicate app launches at startup
 - Apple Music integration showing currently playing track below navigation
   - Displays: Artist - Song [elapsed/duration] (Album)
   - Real-time elapsed time counting
