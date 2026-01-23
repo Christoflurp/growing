@@ -29,6 +29,10 @@ npm run tauri build      # Build for production
 - **Close to tray** - Closing window hides it; app keeps running
 - **Apple Music integration** - Shows now playing bar below navigation (toggleable in Settings)
 - **Eat the Frog** - Mark one task per day as priority with draggable frog icon (toggleable in Settings)
+- **Custom Timers** - Flexible timers with optional naming for any timed activity
+- **Task Timebox** - Full-screen focus overlay blocks app during timeboxed work
+- **Task Categories** - Personal/Work toggle with visual badges on task cards
+- **Confetti** - Celebration animation when all daily tasks are completed
 
 ### Views (8 tabs)
 
@@ -98,6 +102,17 @@ interface AppData {
   todos?: Todo[];                    // Backlog items
   featureRequests?: FeatureRequest[];
   bugReports?: BugReport[];
+  activeTimer?: ActiveTimer;         // Currently running timer
+}
+
+type TaskCategory = "work" | "personal";
+
+interface ActiveTimer {
+  type: "focus" | "task";            // Generic timer or task timebox
+  taskId?: string;                   // For task timeboxes
+  taskName?: string;                 // Display name
+  endTime: string;                   // ISO 8601 timestamp
+  durationMinutes: number;
 }
 
 interface NowPlayingInfo {
@@ -129,10 +144,13 @@ interface DailyTask {
   text: string;
   description: string;
   goalId?: string;                   // Links to PlanItem.id
+  category?: TaskCategory;           // "work" (default) or "personal"
   completed: boolean;
   completedAt?: string;              // ISO 8601 timestamp
   date: string;                      // YYYY-MM-DD
   movedToDate?: string;              // Date task was carried forward to
+  order?: number;                    // For drag-and-drop reordering
+  isFrog?: boolean;                  // Priority "eat the frog" task
 }
 
 interface Todo {
