@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useTasks } from "../../hooks/useTasks";
 import { useGoals } from "../../hooks/useGoals";
+import { useConfetti } from "../../hooks/useConfetti";
 import { useConfirmModal } from "../../context/ConfirmModalContext";
 import { useAppData } from "../../context/AppDataContext";
 import { getGreeting, formatDateTime } from "../../utils/formatUtils";
@@ -56,6 +57,9 @@ export function TodayView({ currentTime, onNavigate }: TodayViewProps) {
     setFrogTask,
     clearFrog,
   } = useTasks();
+
+  const todayTasks = getTodayTasks();
+  useConfetti(todayTasks);
 
   const deleteTask = (taskId: string) => {
     showConfirm("Delete this task?", () => {
@@ -198,7 +202,7 @@ export function TodayView({ currentTime, onNavigate }: TodayViewProps) {
         </button>
       </div>
 
-      <div className={`today-tasks-card entrance-4 ${getTodayTasks().length === 0 ? "empty" : ""}`}>
+      <div className={`today-tasks-card entrance-4 ${todayTasks.length === 0 ? "empty" : ""}`}>
         <div className="today-tasks-header">
           <h2>Today's Tasks</h2>
           <div className="header-actions">
@@ -294,7 +298,7 @@ export function TodayView({ currentTime, onNavigate }: TodayViewProps) {
           </div>
         )}
 
-        {getTodayTasks().length === 0 && !showTaskForm ? (
+        {todayTasks.length === 0 && !showTaskForm ? (
           <div className="empty-state today-empty">
             <div className="empty-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
@@ -309,7 +313,7 @@ export function TodayView({ currentTime, onNavigate }: TodayViewProps) {
           </div>
         ) : (
           <div className={`today-tasks ${draggedIndex !== null ? "dragging-active" : ""}`}>
-            {getTodayTasks().map((task, index) => {
+            {todayTasks.map((task, index) => {
               const goalInfo = task.goalId ? getGoalById(task.goalId) : null;
               const isEditing = editingTaskId === task.id;
               const isDragOver = dragOverIndex === index && draggedIndex !== index;
