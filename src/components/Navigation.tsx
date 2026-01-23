@@ -14,6 +14,7 @@ interface NavigationProps {
   onOpenChangelog?: () => void;
   onOpenFeatureRequests?: () => void;
   onOpenBugReports?: () => void;
+  onStartFocusTimer?: () => void;
 }
 
 const Navigation: React.FC<NavigationProps> = ({
@@ -29,6 +30,7 @@ const Navigation: React.FC<NavigationProps> = ({
   onOpenChangelog,
   onOpenFeatureRequests,
   onOpenBugReports,
+  onStartFocusTimer,
 }) => {
   return (
     <TabNav
@@ -44,6 +46,7 @@ const Navigation: React.FC<NavigationProps> = ({
       onOpenChangelog={onOpenChangelog}
       onOpenFeatureRequests={onOpenFeatureRequests}
       onOpenBugReports={onOpenBugReports}
+      onStartFocusTimer={onStartFocusTimer}
     />
   );
 };

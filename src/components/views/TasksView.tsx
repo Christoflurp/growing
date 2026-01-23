@@ -9,15 +9,17 @@ import { isToday, isFutureDate } from "../../utils/dateUtils";
 import { formatDateHeader } from "../../utils/formatUtils";
 import { Todo } from "../../types";
 import { FrogIcon } from "../shared/FrogIcon";
+import { CategoryToggle } from "../shared/CategoryToggle";
 
 interface TasksViewProps {
   selectedDate: string;
   onOpenDatePicker: () => void;
   onOpenSchedulePicker: (todo: Todo) => void;
   onGoToToday: () => void;
+  onStartTaskTimer?: (taskId: string, taskName: string) => void;
 }
 
-export function TasksView({ selectedDate, onOpenDatePicker, onOpenSchedulePicker, onGoToToday }: TasksViewProps) {
+export function TasksView({ selectedDate, onOpenDatePicker, onOpenSchedulePicker, onGoToToday, onStartTaskTimer }: TasksViewProps) {
   const { data } = useAppData();
   const { showConfirm } = useConfirmModal();
   const { getAllGoals, getGoalById } = useGoals();
@@ -40,6 +42,8 @@ export function TasksView({ selectedDate, onOpenDatePicker, onOpenSchedulePicker
     setTaskGoalId,
     taskIsFrog,
     setTaskIsFrog,
+    taskCategory,
+    setTaskCategory,
     editingTaskId,
     editTaskText,
     setEditTaskText,
@@ -49,6 +53,8 @@ export function TasksView({ selectedDate, onOpenDatePicker, onOpenSchedulePicker
     setEditTaskGoalId,
     editTaskIsFrog,
     setEditTaskIsFrog,
+    editTaskCategory,
+    setEditTaskCategory,
     getTasksForDate,
     getFrogForDate,
     getFutureTasks,
@@ -268,6 +274,7 @@ export function TasksView({ selectedDate, onOpenDatePicker, onOpenSchedulePicker
               </option>
             ))}
           </select>
+          <CategoryToggle value={taskCategory} onChange={setTaskCategory} />
           {frogEnabled && !hasFrog && (
             <label className="frog-checkbox-label">
               <input
@@ -290,6 +297,7 @@ export function TasksView({ selectedDate, onOpenDatePicker, onOpenSchedulePicker
                 setTaskDescription("");
                 setTaskGoalId(null);
                 setTaskIsFrog(false);
+                setTaskCategory("work");
               }}
             >
               Cancel
@@ -360,6 +368,7 @@ export function TasksView({ selectedDate, onOpenDatePicker, onOpenSchedulePicker
                         </option>
                       ))}
                     </select>
+                    <CategoryToggle value={editTaskCategory} onChange={setEditTaskCategory} />
                     {frogEnabled && (
                       <label className="frog-checkbox-label">
                         <input
@@ -423,6 +432,11 @@ export function TasksView({ selectedDate, onOpenDatePicker, onOpenSchedulePicker
                           {goalInfo.sectionTitle}
                         </span>
                       )}
+                      {!isMoved && (
+                        <span className={`task-category-badge ${task.category || "work"}`}>
+                          {task.category === "personal" ? "Personal" : "Work"}
+                        </span>
+                      )}
                     </div>
                     {!isMoved && (
                       <>
@@ -435,6 +449,14 @@ export function TasksView({ selectedDate, onOpenDatePicker, onOpenSchedulePicker
                               <line x1="3" y1="6" x2="3.01" y2="6" />
                               <line x1="3" y1="12" x2="3.01" y2="12" />
                               <line x1="3" y1="18" x2="3.01" y2="18" />
+                            </svg>
+                          </button>
+                        )}
+                        {!task.completed && onStartTaskTimer && (
+                          <button className="task-timer-btn" onClick={() => onStartTaskTimer(task.id, task.text)} title="Start timer">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                              <circle cx="12" cy="12" r="10" />
+                              <polyline points="12 6 12 12 16 14" />
                             </svg>
                           </button>
                         )}

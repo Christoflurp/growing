@@ -294,6 +294,32 @@ pub struct DailyTask {
     pub date: String,
     #[serde(default, rename = "movedToDate", skip_serializing_if = "Option::is_none")]
     pub moved_to_date: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub order: Option<i32>,
+    #[serde(default, rename = "isFrog", skip_serializing_if = "Option::is_none")]
+    pub is_frog: Option<bool>,
+    #[serde(default = "default_category")]
+    pub category: String,
+    #[serde(default, rename = "timeboxMinutes", skip_serializing_if = "Option::is_none")]
+    pub timebox_minutes: Option<i32>,
+}
+
+fn default_category() -> String {
+    "work".to_string()
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+pub struct ActiveTimer {
+    #[serde(rename = "type")]
+    pub timer_type: String,
+    #[serde(default, rename = "taskId", skip_serializing_if = "Option::is_none")]
+    pub task_id: Option<String>,
+    #[serde(default, rename = "taskName", skip_serializing_if = "Option::is_none")]
+    pub task_name: Option<String>,
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    #[serde(rename = "durationMinutes")]
+    pub duration_minutes: i32,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
@@ -362,6 +388,8 @@ pub struct AppData {
     pub apple_music_enabled: bool,
     #[serde(default = "default_true", rename = "frogEnabled")]
     pub frog_enabled: bool,
+    #[serde(default, rename = "activeTimer", skip_serializing_if = "Option::is_none")]
+    pub active_timer: Option<ActiveTimer>,
 }
 
 fn default_theme() -> String {

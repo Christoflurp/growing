@@ -81,6 +81,7 @@ interface TabNavProps {
   onOpenChangelog?: () => void;
   onOpenFeatureRequests?: () => void;
   onOpenBugReports?: () => void;
+  onStartFocusTimer?: () => void;
 }
 
 const TabNav: React.FC<TabNavProps> = ({
@@ -96,6 +97,7 @@ const TabNav: React.FC<TabNavProps> = ({
   onOpenChangelog,
   onOpenFeatureRequests,
   onOpenBugReports,
+  onStartFocusTimer,
 }) => {
   const [menuExpanded, setMenuExpanded] = useState(false);
 
@@ -223,6 +225,16 @@ const TabNav: React.FC<TabNavProps> = ({
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <line x1="12" y1="5" x2="12" y2="19" />
             <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+        </button>
+        <button
+          className="nav-timer-btn"
+          onClick={onStartFocusTimer}
+          title="Start focus timer"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="12 6 12 12 16 14" />
           </svg>
         </button>
       </div>

@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
@@ -13,6 +13,7 @@ import { useTasks } from "./hooks/useTasks";
 import { useTodos } from "./hooks/useTodos";
 import { useQuickNotes } from "./hooks/useQuickNotes";
 import { useBragDocs } from "./hooks/useBragDocs";
+import { useTimer } from "./hooks/useTimer";
 import { ConfirmModal } from "./components/shared/ConfirmModal";
 import { QuickNoteModal } from "./components/shared/QuickNoteModal";
 import { LightboxModal } from "./components/shared/LightboxModal";
@@ -23,6 +24,9 @@ import { ChangelogModal } from "./components/shared/ChangelogModal";
 import { FeatureRequestsModal } from "./components/shared/FeatureRequestsModal";
 import { BugReportsModal } from "./components/shared/BugReportsModal";
 import { GettingStartedModal } from "./components/shared/GettingStartedModal";
+import { TimerModal } from "./components/shared/TimerModal";
+import { TimerBar } from "./components/shared/TimerBar";
+import { TimeboxOverlay } from "./components/shared/TimeboxOverlay";
 import { OnboardingView } from "./components/views/OnboardingView";
 import { TodayView } from "./components/views/TodayView";
 import { TasksView } from "./components/views/TasksView";
@@ -40,9 +44,11 @@ interface AppContentProps {
   alertOverlay: { show: boolean; title: string; body: string; type: string } | null;
   onDismissAlert: () => void;
   nowPlaying: NowPlayingInfo | null;
+  onTimerExpired: (type: "focus" | "task", taskName?: string) => void;
+  onRegisterStopTimer: (stopFn: () => void) => void;
 }
 
-function AppContent({ alertOverlay, onDismissAlert, nowPlaying }: AppContentProps) {
+function AppContent({ alertOverlay, onDismissAlert, nowPlaying, onTimerExpired, onRegisterStopTimer }: AppContentProps) {
   const { data, saveData } = useAppData();
 
   const {
@@ -92,6 +98,23 @@ function AppContent({ alertOverlay, onDismissAlert, nowPlaying }: AppContentProp
 
   const { lightboxImage, openLightbox, closeLightbox } = useBragDocs();
 
+  const handleTimerExpired = useCallback((timer: { type: string; taskName?: string }) => {
+    onTimerExpired(timer.type as "focus" | "task", timer.taskName);
+  }, [onTimerExpired]);
+
+  const {
+    activeTimer,
+    timeRemaining,
+    isExpired,
+    startTimer,
+    stopTimer,
+    formatTime,
+  } = useTimer({ onExpired: handleTimerExpired });
+
+  useEffect(() => {
+    onRegisterStopTimer(stopTimer);
+  }, [stopTimer, onRegisterStopTimer]);
+
   const [activeView, setActiveView] = useState<NavView>("today");
   const [scrollToSection, setScrollToSection] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -99,6 +122,30 @@ function AppContent({ alertOverlay, onDismissAlert, nowPlaying }: AppContentProp
   const [showFeatureRequests, setShowFeatureRequests] = useState(false);
   const [showBugReports, setShowBugReports] = useState(false);
   const [showGettingStarted, setShowGettingStarted] = useState(false);
+  const [showTimerModal, setShowTimerModal] = useState(false);
+  const [timerModalType, setTimerModalType] = useState<"focus" | "task">("focus");
+  const [timerModalTaskId, setTimerModalTaskId] = useState<string | undefined>();
+  const [timerModalTaskName, setTimerModalTaskName] = useState<string | undefined>();
+
+  const openFocusTimer = useCallback(() => {
+    setTimerModalType("focus");
+    setTimerModalTaskId(undefined);
+    setTimerModalTaskName(undefined);
+    setShowTimerModal(true);
+  }, []);
+
+  const openTaskTimer = useCallback((taskId: string, taskName: string) => {
+    setTimerModalType("task");
+    setTimerModalTaskId(taskId);
+    setTimerModalTaskName(taskName);
+    setShowTimerModal(true);
+  }, []);
+
+  const handleStartTimer = useCallback((minutes: number, name?: string) => {
+    const timerName = timerModalType === "focus" ? name : timerModalTaskName;
+    startTimer(minutes, timerModalType, timerModalTaskId, timerName);
+    setShowTimerModal(false);
+  }, [startTimer, timerModalType, timerModalTaskId, timerModalTaskName]);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
@@ -260,13 +307,26 @@ function AppContent({ alertOverlay, onDismissAlert, nowPlaying }: AppContentProp
         onOpenChangelog={() => setShowChangelog(true)}
         onOpenFeatureRequests={() => setShowFeatureRequests(true)}
         onOpenBugReports={() => setShowBugReports(true)}
+        onStartFocusTimer={openFocusTimer}
       />
+
+      {activeTimer && activeTimer.type === "focus" && timeRemaining !== null && (
+        <TimerBar
+          type="focus"
+          taskName={activeTimer.taskName}
+          timeRemaining={timeRemaining}
+          totalDuration={activeTimer.durationMinutes}
+          isExpired={isExpired || false}
+          formatTime={formatTime}
+          onStop={stopTimer}
+        />
+      )}
 
       {data.appleMusicEnabled !== false && <NowPlayingBar nowPlaying={nowPlaying} />}
 
       <main className="main-content">
         {activeView === "today" && (
-          <TodayView currentTime={currentTime} onNavigate={setActiveView} />
+          <TodayView currentTime={currentTime} onNavigate={setActiveView} onStartTaskTimer={openTaskTimer} />
         )}
 
         {activeView === "tasks" && (
@@ -275,6 +335,7 @@ function AppContent({ alertOverlay, onDismissAlert, nowPlaying }: AppContentProp
             onOpenDatePicker={openDatePicker}
             onOpenSchedulePicker={openSchedulePicker}
             onGoToToday={handleCalendarGoToToday}
+            onStartTaskTimer={openTaskTimer}
           />
         )}
 
@@ -363,6 +424,25 @@ function AppContent({ alertOverlay, onDismissAlert, nowPlaying }: AppContentProp
         userName={data.userName || ""}
         onClose={() => setShowGettingStarted(false)}
       />
+
+      {showTimerModal && (
+        <TimerModal
+          type={timerModalType}
+          taskName={timerModalTaskName}
+          onStart={handleStartTimer}
+          onClose={() => setShowTimerModal(false)}
+        />
+      )}
+
+      {activeTimer && activeTimer.type === "task" && timeRemaining !== null && timeRemaining > 0 && (
+        <TimeboxOverlay
+          taskName={activeTimer.taskName}
+          timeRemaining={timeRemaining}
+          totalDuration={activeTimer.durationMinutes}
+          formatTime={formatTime}
+          onStop={stopTimer}
+        />
+      )}
     </div>
   );
 }
@@ -375,6 +455,7 @@ function App() {
     type: string;
   } | null>(null);
   const [nowPlaying, setNowPlaying] = useState<NowPlayingInfo | null>(null);
+  const stopTimerRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     invoke<NowPlayingInfo>("get_now_playing").then(setNowPlaying);
@@ -404,6 +485,39 @@ function App() {
     });
   }, []);
 
+  const handleTimerExpired = useCallback((type: "focus" | "task", timerName?: string) => {
+    getCurrentWindow().show();
+    getCurrentWindow().setFocus();
+    if (type === "focus") {
+      setAlertOverlay({
+        show: true,
+        type: "timer",
+        title: "Time's Up",
+        body: timerName
+          ? `Your timer "${timerName}" has ended.`
+          : "Your timer has ended. Take a moment to reflect on what you accomplished.",
+      });
+    } else {
+      setAlertOverlay({
+        show: true,
+        type: "timer",
+        title: "Time's Up",
+        body: timerName ? `Your timebox for "${timerName}" has ended.` : "Your task timebox has ended.",
+      });
+    }
+  }, []);
+
+  const handleRegisterStopTimer = useCallback((stopFn: () => void) => {
+    stopTimerRef.current = stopFn;
+  }, []);
+
+  const handleDismissAlert = useCallback(() => {
+    if (alertOverlay?.type === "timer" && stopTimerRef.current) {
+      stopTimerRef.current();
+    }
+    setAlertOverlay(null);
+  }, [alertOverlay?.type]);
+
   return (
     <AppDataProvider
       onAlertTriggered={handleAlertTriggered}
@@ -412,8 +526,10 @@ function App() {
       <ConfirmModalProvider>
         <AppContent
           alertOverlay={alertOverlay}
-          onDismissAlert={() => setAlertOverlay(null)}
+          onDismissAlert={handleDismissAlert}
           nowPlaying={nowPlaying}
+          onTimerExpired={handleTimerExpired}
+          onRegisterStopTimer={handleRegisterStopTimer}
         />
       </ConfirmModalProvider>
     </AppDataProvider>

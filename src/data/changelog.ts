@@ -5,7 +5,7 @@ export interface ChangelogEntry {
   changes: string[];
 }
 
-export const APP_VERSION = "1.0.0";
+export const APP_VERSION = "1.1.0";
 
 export const changelog: ChangelogEntry[] = [
   {
@@ -13,6 +13,24 @@ export const changelog: ChangelogEntry[] = [
     date: null,
     title: "Upcoming Changes",
     changes: [],
+  },
+  {
+    version: "1.1.0",
+    date: "2026-01-23",
+    title: "Timers & Categories",
+    changes: [
+      "Custom timers with optional naming",
+      "Task timebox with full-screen focus overlay",
+      "Personal/Work category toggle for tasks",
+      "Category badges on task cards",
+      "Timer expiration alerts with window focus",
+      "Confetti celebration when all daily tasks completed",
+      "Apple Music now playing bar integration",
+      "Eat the Frog priority task feature",
+      "Drag-and-drop task reordering",
+      "Settings toggles for Apple Music and Frog features",
+      "Single-instance enforcement to prevent duplicate launches",
+    ],
   },
   {
     version: "1.0.0",

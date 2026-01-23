@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { useAppData } from "../context/AppDataContext";
-import { DailyTask } from "../types";
+import { DailyTask, TaskCategory } from "../types";
 import { getTodayDate } from "../utils/dateUtils";
 
 export function useTasks() {
@@ -11,12 +11,14 @@ export function useTasks() {
   const [taskDescription, setTaskDescription] = useState("");
   const [taskGoalId, setTaskGoalId] = useState<string | null>(null);
   const [taskIsFrog, setTaskIsFrog] = useState(false);
+  const [taskCategory, setTaskCategory] = useState<TaskCategory>("work");
 
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [editTaskText, setEditTaskText] = useState("");
   const [editTaskDescription, setEditTaskDescription] = useState("");
   const [editTaskGoalId, setEditTaskGoalId] = useState<string | null>(null);
   const [editTaskIsFrog, setEditTaskIsFrog] = useState(false);
+  const [editTaskCategory, setEditTaskCategory] = useState<TaskCategory>("work");
 
   const [taskEditModal, setTaskEditModal] = useState<DailyTask | null>(null);
   const [modalTaskText, setModalTaskText] = useState("");
@@ -86,6 +88,7 @@ export function useTasks() {
       date: today,
       order: 0,
       isFrog: taskIsFrog || undefined,
+      category: taskCategory,
     };
     const updatedTasks = (data.dailyTasks || []).map((task) => {
       if (task.date !== today) return task;
@@ -103,8 +106,9 @@ export function useTasks() {
     setTaskDescription("");
     setTaskGoalId(null);
     setTaskIsFrog(false);
+    setTaskCategory("work");
     setShowTaskForm(false);
-  }, [data, saveData, taskText, taskDescription, taskGoalId, taskIsFrog]);
+  }, [data, saveData, taskText, taskDescription, taskGoalId, taskIsFrog, taskCategory]);
 
   const toggleTaskComplete = useCallback(
     async (taskId: string) => {
@@ -144,6 +148,7 @@ export function useTasks() {
     setEditTaskDescription(task.description);
     setEditTaskGoalId(task.goalId || null);
     setEditTaskIsFrog(task.isFrog || false);
+    setEditTaskCategory(task.category || "work");
   }, []);
 
   const cancelEditingTask = useCallback(() => {
@@ -152,6 +157,7 @@ export function useTasks() {
     setEditTaskDescription("");
     setEditTaskGoalId(null);
     setEditTaskIsFrog(false);
+    setEditTaskCategory("work");
   }, []);
 
   const updateTask = useCallback(async () => {
@@ -170,6 +176,7 @@ export function useTasks() {
             goalId: editTaskGoalId || undefined,
             isFrog: editTaskIsFrog || undefined,
             order: editTaskIsFrog ? 0 : task.order,
+            category: editTaskCategory,
           };
         }
         if (editTaskIsFrog && task.date === taskDate && task.isFrog) {
@@ -180,7 +187,7 @@ export function useTasks() {
     };
     await saveData(newData);
     cancelEditingTask();
-  }, [data, saveData, editingTaskId, editTaskText, editTaskDescription, editTaskGoalId, editTaskIsFrog, cancelEditingTask]);
+  }, [data, saveData, editingTaskId, editTaskText, editTaskDescription, editTaskGoalId, editTaskIsFrog, editTaskCategory, cancelEditingTask]);
 
   const openTaskEditModal = useCallback((task: DailyTask) => {
     setTaskEditModal(task);
@@ -227,6 +234,7 @@ export function useTasks() {
         completed: false,
         date: today,
         order: 0,
+        category: task.category || "work",
       };
       const updatedTasks = (data.dailyTasks || []).map((t) => {
         if (t.id === task.id) return { ...t, movedToDate: today };
@@ -308,6 +316,8 @@ export function useTasks() {
     setTaskGoalId,
     taskIsFrog,
     setTaskIsFrog,
+    taskCategory,
+    setTaskCategory,
     editingTaskId,
     editTaskText,
     setEditTaskText,
@@ -317,6 +327,8 @@ export function useTasks() {
     setEditTaskGoalId,
     editTaskIsFrog,
     setEditTaskIsFrog,
+    editTaskCategory,
+    setEditTaskCategory,
     taskEditModal,
     modalTaskText,
     setModalTaskText,

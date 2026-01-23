@@ -42,6 +42,8 @@ export interface BragDocEntry {
   timestamp: string;
 }
 
+export type TaskCategory = "work" | "personal";
+
 export interface DailyTask {
   id: string;
   text: string;
@@ -53,6 +55,16 @@ export interface DailyTask {
   movedToDate?: string;
   order?: number;
   isFrog?: boolean;
+  category: TaskCategory;
+  timeboxMinutes?: number;
+}
+
+export interface ActiveTimer {
+  type: "focus" | "task";
+  taskId?: string;
+  taskName?: string;
+  endTime: string;
+  durationMinutes: number;
 }
 
 export interface Todo {
@@ -95,6 +107,7 @@ export interface AppData {
   onboardingComplete?: boolean;
   appleMusicEnabled?: boolean;
   frogEnabled?: boolean;
+  activeTimer?: ActiveTimer;
 }
 
 export type NavView = "today" | "tasks" | "goals" | "notes" | "bragdoc" | "settings";

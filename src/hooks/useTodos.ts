@@ -92,6 +92,7 @@ export function useTodos() {
         goalId: todo.goalId,
         completed: false,
         date: date,
+        category: "work",
       };
       const newData = {
         ...data,

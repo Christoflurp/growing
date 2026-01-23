@@ -8,13 +8,15 @@ import { getGreeting, formatDateTime } from "../../utils/formatUtils";
 import { getTodayDate } from "../../utils/dateUtils";
 import { NavView } from "../../types";
 import { FrogIcon } from "../shared/FrogIcon";
+import { CategoryToggle } from "../shared/CategoryToggle";
 
 interface TodayViewProps {
   currentTime: Date;
   onNavigate: (view: NavView) => void;
+  onStartTaskTimer?: (taskId: string, taskName: string) => void;
 }
 
-export function TodayView({ currentTime, onNavigate }: TodayViewProps) {
+export function TodayView({ currentTime, onNavigate, onStartTaskTimer }: TodayViewProps) {
   const { data } = useAppData();
   const { showConfirm } = useConfirmModal();
   const { getAllGoals, getGoalById } = useGoals();
@@ -36,6 +38,8 @@ export function TodayView({ currentTime, onNavigate }: TodayViewProps) {
     setTaskGoalId,
     taskIsFrog,
     setTaskIsFrog,
+    taskCategory,
+    setTaskCategory,
     editingTaskId,
     editTaskText,
     setEditTaskText,
@@ -45,6 +49,8 @@ export function TodayView({ currentTime, onNavigate }: TodayViewProps) {
     setEditTaskGoalId,
     editTaskIsFrog,
     setEditTaskIsFrog,
+    editTaskCategory,
+    setEditTaskCategory,
     getTodayTasks,
     getFrogForDate,
     addTask,
@@ -264,6 +270,7 @@ export function TodayView({ currentTime, onNavigate }: TodayViewProps) {
                 </option>
               ))}
             </select>
+            <CategoryToggle value={taskCategory} onChange={setTaskCategory} />
             {frogEnabled && !hasFrog && (
               <label className="frog-checkbox-label">
                 <input
@@ -290,6 +297,7 @@ export function TodayView({ currentTime, onNavigate }: TodayViewProps) {
                   setTaskDescription("");
                   setTaskGoalId(null);
                   setTaskIsFrog(false);
+                  setTaskCategory("work");
                 }}
               >
                 Cancel
@@ -361,6 +369,7 @@ export function TodayView({ currentTime, onNavigate }: TodayViewProps) {
                           </option>
                         ))}
                       </select>
+                      <CategoryToggle value={editTaskCategory} onChange={setEditTaskCategory} />
                       {frogEnabled && (
                         <label className="frog-checkbox-label">
                           <input
@@ -420,7 +429,18 @@ export function TodayView({ currentTime, onNavigate }: TodayViewProps) {
                             {goalInfo.sectionTitle}
                           </span>
                         )}
+                        <span className={`task-category-badge ${task.category || "work"}`}>
+                          {task.category === "personal" ? "Personal" : "Work"}
+                        </span>
                       </div>
+                      {!task.completed && onStartTaskTimer && (
+                        <button className="task-timer-btn" onClick={() => onStartTaskTimer(task.id, task.text)} title="Start timer">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                            <circle cx="12" cy="12" r="10" />
+                            <polyline points="12 6 12 12 16 14" />
+                          </svg>
+                        </button>
+                      )}
                       <button className="task-edit" onClick={() => startEditingTask(task)}>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                           <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
