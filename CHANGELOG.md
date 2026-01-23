@@ -7,8 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-01-23
+
 ### Added
 
+- Confetti celebration when completing all tasks for the day
+  - Extravagant multi-burst animation from both sides of screen
+  - Works from both Today and Tasks views
 - Single-instance enforcement to prevent duplicate app launches at startup
 - Apple Music integration showing currently playing track below navigation
   - Displays: Artist - Song [elapsed/duration] (Album)
@@ -19,7 +24,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Toggle to enable/disable Apple Music integration
   - Toggle to enable/disable Eat the Frog feature
 
-## [1.0.0] - 2025-01-17
+### Fixed
+
+- Date selection in Tasks view now correctly shows tasks for selected date
+- Frog status persists correctly when navigating between dates
+- Dev mode can now run alongside installed app (single-instance only in release)
+
+## [1.0.0] - 2026-01-17
 
 ### Added
 
