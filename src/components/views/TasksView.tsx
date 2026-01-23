@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect } from "react";
 import { useAppData } from "../../context/AppDataContext";
-import { useCalendar } from "../../hooks/useCalendar";
 import { useTasks } from "../../hooks/useTasks";
 import { useTodos } from "../../hooks/useTodos";
 import { useGoals } from "../../hooks/useGoals";
+import { useConfetti } from "../../hooks/useConfetti";
 import { useConfirmModal } from "../../context/ConfirmModalContext";
 import { isToday, isFutureDate } from "../../utils/dateUtils";
 import { formatDateHeader } from "../../utils/formatUtils";
@@ -11,13 +11,14 @@ import { Todo } from "../../types";
 import { FrogIcon } from "../shared/FrogIcon";
 
 interface TasksViewProps {
+  selectedDate: string;
   onOpenDatePicker: () => void;
   onOpenSchedulePicker: (todo: Todo) => void;
+  onGoToToday: () => void;
 }
 
-export function TasksView({ onOpenDatePicker, onOpenSchedulePicker }: TasksViewProps) {
+export function TasksView({ selectedDate, onOpenDatePicker, onOpenSchedulePicker, onGoToToday }: TasksViewProps) {
   const { data } = useAppData();
-  const { selectedDate, goToToday } = useCalendar();
   const { showConfirm } = useConfirmModal();
   const { getAllGoals, getGoalById } = useGoals();
 
@@ -155,6 +156,9 @@ export function TasksView({ onOpenDatePicker, onOpenSchedulePicker }: TasksViewP
     };
   }, [draggedIndex, dragOverIndex, selectedDate, getTasksForDate, reorderTasks]);
 
+  const tasksForSelectedDate = getTasksForDate(selectedDate);
+  useConfetti(tasksForSelectedDate);
+
   const frogEnabled = data?.frogEnabled !== false;
   const hasFrog = frogEnabled && !!getFrogForDate(selectedDate);
 
@@ -215,7 +219,7 @@ export function TasksView({ onOpenDatePicker, onOpenSchedulePicker }: TasksViewP
             </svg>
           </button>
           {!isToday(selectedDate) && (
-            <button className="today-link" onClick={goToToday}>
+            <button className="today-link" onClick={onGoToToday}>
               Go to today
             </button>
           )}

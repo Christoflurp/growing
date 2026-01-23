@@ -271,8 +271,10 @@ function AppContent({ alertOverlay, onDismissAlert, nowPlaying }: AppContentProp
 
         {activeView === "tasks" && (
           <TasksView
+            selectedDate={selectedDate}
             onOpenDatePicker={openDatePicker}
             onOpenSchedulePicker={openSchedulePicker}
+            onGoToToday={handleCalendarGoToToday}
           />
         )}
 
