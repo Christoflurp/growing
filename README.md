@@ -5,10 +5,16 @@ A personal Mac menu bar app for tracking growth goals and daily accountability. 
 ## Features
 
 - **Daily Tasks** - Plan your day with tasks linked to goals, carry forward incomplete items
+- **Task Categories** - Tag tasks as Personal or Work with visual badges
+- **Eat the Frog** - Mark one priority task per day with draggable frog indicator
+- **Task Timebox** - Full-screen focus overlay blocks distractions during timeboxed work
+- **Custom Timers** - Flexible timers with optional naming for any timed activity
+- **Drag & Drop** - Reorder tasks by dragging to prioritize your day
 - **Backlog** - Unscheduled task list for future work, schedule items when ready
 - **Goals Tracking** - Organize goals by period (ongoing/quarterly/monthly) with progress visualization
 - **Quick Notes** - Capture thoughts instantly with Cmd+Enter
 - **Brag Doc** - Document accomplishments with image attachments and links
+- **Apple Music** - Now playing bar shows current track (toggleable in Settings)
 - **Stand/Sit Reminders** - Configurable alerts to alternate between sitting and standing
 - **Scheduled Notifications** - Daily and weekly reminder notifications
 - **Themes** - Four distinct themes (Editorial, Obsidian, Paper, Grove) plus dark mode
@@ -16,6 +22,7 @@ A personal Mac menu bar app for tracking growth goals and daily accountability. 
 - **Daily Backups** - Automatic backups with corruption recovery
 - **Global Hotkey** - Cmd+Shift+G to show window from anywhere
 - **Launch at Login** - Optional auto-start on macOS login
+- **Celebrations** - Confetti animation when all daily tasks are completed
 
 ## Tech Stack
 
