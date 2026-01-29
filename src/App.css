@@ -2901,7 +2901,7 @@ select:disabled {
   align-items: center;
   gap: 12px;
   padding: 12px 16px;
-  margin-bottom: 24px;
+  margin: 0 auto 24px;
   background: rgba(255, 255, 255, 0.05);
   border-radius: var(--radius-md);
   max-width: 300px;
@@ -3661,10 +3661,17 @@ select:disabled {
 
 .task-detail-title-row {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
   flex: 1;
   min-width: 0;
+}
+
+.task-detail-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
 }
 
 .task-detail-edit-icon {
@@ -3680,7 +3687,6 @@ select:disabled {
   justify-content: center;
   flex-shrink: 0;
   transition: all var(--transition);
-  margin-left: auto;
 }
 
 .task-detail-edit-icon:hover {
