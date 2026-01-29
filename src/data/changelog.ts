@@ -5,7 +5,7 @@ export interface ChangelogEntry {
   changes: string[];
 }
 
-export const APP_VERSION = "1.1.0";
+export const APP_VERSION = "1.2.0";
 
 export const changelog: ChangelogEntry[] = [
   {
@@ -13,6 +13,18 @@ export const changelog: ChangelogEntry[] = [
     date: null,
     title: "Upcoming Changes",
     changes: [],
+  },
+  {
+    version: "1.2.0",
+    date: "2026-01-31",
+    title: "Multiple Timers & Polish",
+    changes: [
+      "Multiple concurrent timers support",
+      "Run several focus timers at once with individual controls",
+      "Improved frog styling - task text turns green, icon after title",
+      "Music info displays during task timeboxes",
+      "Fixed tag alignment in task cards (goal tags + category badges)",
+    ],
   },
   {
     version: "1.1.0",

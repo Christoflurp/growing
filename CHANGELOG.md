@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-01-31
+
+### Added
+
+- Multiple concurrent timers support
+  - Run multiple focus timers simultaneously
+  - Each timer tracks independently with its own countdown
+  - Individual stop controls for each timer
+- Improved frog task styling
+  - Task text turns green when marked as frog
+  - Frog icon moved after title to maintain checkbox alignment
+  - Smaller, cleaner frog indicator (20px vs 26px)
+- Music info in timebox overlay
+  - Shows currently playing track title and artist during task timeboxes
+  - Minimal, non-distracting design
+
+### Fixed
+
+- Goal tags and work/personal labels now align properly in task cards
+  - Tags are grouped in a flex row with consistent spacing
+  - Removed individual margins causing misalignment
+
 ## [1.1.0] - 2026-01-23
 
 ### Added
