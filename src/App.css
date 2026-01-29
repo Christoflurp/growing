@@ -2196,7 +2196,25 @@ select:disabled {
 
 .task-card.is-frog {
   border-left: 4px solid #4caf50;
-  background: linear-gradient(90deg, rgba(76, 175, 80, 0.08) 0%, transparent 100%);
+  background: linear-gradient(90deg, rgba(76, 175, 80, 0.12) 0%, rgba(76, 175, 80, 0.04) 100%);
+}
+
+.task-card.is-frog .task-card-text {
+  color: #2e7d32;
+}
+
+[data-dark] .task-card.is-frog .task-card-text {
+  color: #81c784;
+}
+
+.task-card-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.task-card-title-row .task-card-text {
+  margin: 0;
 }
 
 .frog-icon {
@@ -2205,11 +2223,10 @@ select:disabled {
 }
 
 .frog-indicator {
-  font-size: 1.25rem;
-  margin-right: 0.5rem;
   flex-shrink: 0;
   display: flex;
   align-items: center;
+  margin-left: 4px;
 }
 
 .frog-indicator.draggable {
@@ -2311,11 +2328,18 @@ select:disabled {
   white-space: pre-wrap;
 }
 
+.task-tags-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
 .task-goal-tag {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  margin-top: 8px;
   padding: 3px 8px;
   font-size: 12px;
   font-weight: 500;
@@ -2332,8 +2356,6 @@ select:disabled {
 .task-category-badge {
   display: inline-flex;
   align-items: center;
-  margin-top: 8px;
-  margin-right: 8px;
   padding: 3px 8px;
   font-size: 11px;
   font-weight: 600;

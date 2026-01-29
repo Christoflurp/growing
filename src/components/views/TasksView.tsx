@@ -390,15 +390,6 @@ export function TasksView({ selectedDate, onOpenDatePicker, onOpenSchedulePicker
                   </div>
                 ) : (
                   <>
-                    {frogEnabled && task.isFrog && (
-                      <span
-                        className={`frog-indicator draggable ${isDraggingFrog ? "dragging" : ""}`}
-                        onMouseDown={handleFrogDragStart}
-                        title="Drag to another task to reassign frog"
-                      >
-                        <FrogIcon size={26} />
-                      </span>
-                    )}
                     <button
                       className={`checkbox ${isMoved ? "disabled" : ""}`}
                       onClick={() => !isMoved && toggleTaskComplete(task.id)}
@@ -411,7 +402,18 @@ export function TasksView({ selectedDate, onOpenDatePicker, onOpenSchedulePicker
                       )}
                     </button>
                     <div className="task-card-content">
-                      <p className="task-card-text">{task.text}</p>
+                      <div className="task-card-title-row">
+                        <p className="task-card-text">{task.text}</p>
+                        {frogEnabled && task.isFrog && (
+                          <span
+                            className={`frog-indicator draggable ${isDraggingFrog ? "dragging" : ""}`}
+                            onMouseDown={handleFrogDragStart}
+                            title="Drag to another task to reassign frog"
+                          >
+                            <FrogIcon size={20} />
+                          </span>
+                        )}
+                      </div>
                       {task.description && <p className="task-card-description">{task.description}</p>}
                       {isMoved && (
                         <span className="task-moved-tag">
@@ -422,20 +424,22 @@ export function TasksView({ selectedDate, onOpenDatePicker, onOpenSchedulePicker
                           Moved to {new Date(task.movedToDate! + "T12:00:00").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
                         </span>
                       )}
-                      {goalInfo && !isMoved && (
-                        <span className="task-goal-tag">
-                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                            <circle cx="12" cy="12" r="9" />
-                            <circle cx="12" cy="12" r="5" />
-                            <circle cx="12" cy="12" r="1" fill="currentColor" />
-                          </svg>
-                          {goalInfo.sectionTitle}
-                        </span>
-                      )}
                       {!isMoved && (
-                        <span className={`task-category-badge ${task.category || "work"}`}>
-                          {task.category === "personal" ? "Personal" : "Work"}
-                        </span>
+                        <div className="task-tags-row">
+                          {goalInfo && (
+                            <span className="task-goal-tag">
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                <circle cx="12" cy="12" r="9" />
+                                <circle cx="12" cy="12" r="5" />
+                                <circle cx="12" cy="12" r="1" fill="currentColor" />
+                              </svg>
+                              {goalInfo.sectionTitle}
+                            </span>
+                          )}
+                          <span className={`task-category-badge ${task.category || "work"}`}>
+                            {task.category === "personal" ? "Personal" : "Work"}
+                          </span>
+                        </div>
                       )}
                     </div>
                     {!isMoved && (
