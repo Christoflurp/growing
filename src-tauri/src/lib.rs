@@ -389,6 +389,8 @@ pub struct AppData {
     pub apple_music_enabled: bool,
     #[serde(default = "default_true", rename = "frogEnabled")]
     pub frog_enabled: bool,
+    #[serde(default, rename = "atcDays", skip_serializing_if = "Vec::is_empty")]
+    pub atc_days: Vec<String>,
     #[serde(default, rename = "activeTimer", skip_serializing_if = "Option::is_none")]
     pub active_timer: Option<ActiveTimer>,
     #[serde(default, rename = "activeTimers", skip_serializing_if = "Vec::is_empty")]
