@@ -22,12 +22,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Music info in timebox overlay
   - Shows currently playing track title and artist during task timeboxes
   - Minimal, non-distracting design
+- ATC (on-call) daily toggle in Today view header
+  - Quick indicator for days you're on support rotation
+  - Separate from task categories for cleaner data model
+- Task card description preview
+  - Shows first 1-2 lines of description below task title
+  - Markdown formatting rendered (bold, italic, links styled but not clickable)
+  - Full description with clickable links in task detail modal
+- Larger task detail modal (500px width)
+
+### Changed
+
+- Renamed "Timer" button to "Timebox" in task detail modal
+- Category colors updated: Work (blue), Personal (green)
+- Task cards now show title, description preview, and category badge
 
 ### Fixed
 
 - Goal tags and work/personal labels now align properly in task cards
   - Tags are grouped in a flex row with consistent spacing
   - Removed individual margins causing misalignment
+- Fixed infinite loop in timer hook causing "Maximum update depth exceeded" error
+- Fixed category toggle colors not showing correctly in edit mode
 
 ## [1.1.0] - 2026-01-23
 

@@ -23,7 +23,12 @@ export const changelog: ChangelogEntry[] = [
       "Run several focus timers at once with individual controls",
       "Improved frog styling - task text turns green, icon after title",
       "Music info displays during task timeboxes",
-      "Fixed tag alignment in task cards (goal tags + category badges)",
+      "ATC daily toggle in Today view header for on-call days",
+      "Task cards now show description preview with markdown rendering",
+      "Larger task detail modal with renamed Timebox button",
+      "Updated category colors: Work (blue), Personal (green)",
+      "Fixed infinite loop bug in timer hook",
+      "Fixed tag alignment in task cards",
     ],
   },
   {

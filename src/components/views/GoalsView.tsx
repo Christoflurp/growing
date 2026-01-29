@@ -1,6 +1,7 @@
 import { useAppData } from "../../context/AppDataContext";
 import { useGoals } from "../../hooks/useGoals";
 import { formatRelativeTime } from "../../utils/formatUtils";
+import { MarkdownText } from "../shared/MarkdownText";
 
 export function GoalsView() {
   const { data } = useAppData();
@@ -103,7 +104,7 @@ export function GoalsView() {
                       <div className="goal-item-content">
                         <p className="goal-item-text">{item.text}</p>
                         {item.notes && editingItem !== item.id && (
-                          <p className="goal-item-notes">{item.notes}</p>
+                          <p className="goal-item-notes"><MarkdownText text={item.notes} /></p>
                         )}
                         {editingItem === item.id && (
                           <div className="edit-notes-form">

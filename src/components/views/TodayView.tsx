@@ -6,9 +6,11 @@ import { useConfirmModal } from "../../context/ConfirmModalContext";
 import { useAppData } from "../../context/AppDataContext";
 import { getGreeting, formatDateTime } from "../../utils/formatUtils";
 import { getTodayDate } from "../../utils/dateUtils";
-import { NavView } from "../../types";
+import { NavView, DailyTask } from "../../types";
 import { FrogIcon } from "../shared/FrogIcon";
 import { CategoryToggle } from "../shared/CategoryToggle";
+import { MarkdownText } from "../shared/MarkdownText";
+import { TaskDetailModal } from "../shared/TaskDetailModal";
 
 interface TodayViewProps {
   currentTime: Date;
@@ -17,14 +19,27 @@ interface TodayViewProps {
 }
 
 export function TodayView({ currentTime, onNavigate, onStartTaskTimer }: TodayViewProps) {
-  const { data } = useAppData();
+  const { data, saveData } = useAppData();
   const { showConfirm } = useConfirmModal();
+
+  const today = getTodayDate();
+  const isAtcToday = data?.atcDays?.includes(today) ?? false;
+
+  const toggleAtc = async () => {
+    if (!data) return;
+    const currentAtcDays = data.atcDays || [];
+    const newAtcDays = isAtcToday
+      ? currentAtcDays.filter((d) => d !== today)
+      : [...currentAtcDays, today];
+    await saveData({ ...data, atcDays: newAtcDays });
+  };
   const { getAllGoals, getGoalById } = useGoals();
 
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [isDraggingFrog, setIsDraggingFrog] = useState(false);
   const [frogDropTarget, setFrogDropTarget] = useState<string | null>(null);
+  const [selectedTask, setSelectedTask] = useState<DailyTask | null>(null);
   const taskRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   const {
@@ -120,7 +135,6 @@ export function TodayView({ currentTime, onNavigate, onStartTaskTimer }: TodayVi
     };
   }, [draggedIndex, dragOverIndex, getTodayTasks, reorderTasks]);
 
-  const today = getTodayDate();
   const frogEnabled = data?.frogEnabled !== false;
   const hasFrog = frogEnabled && !!getFrogForDate(today);
 
@@ -212,6 +226,16 @@ export function TodayView({ currentTime, onNavigate, onStartTaskTimer }: TodayVi
         <div className="today-tasks-header">
           <h2>Today's Tasks</h2>
           <div className="header-actions">
+            <button
+              className={`atc-toggle ${isAtcToday ? "active" : ""}`}
+              onClick={toggleAtc}
+              title={isAtcToday ? "You're on ATC today" : "Mark as ATC day"}
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z" />
+              </svg>
+              ATC
+            </button>
             {frogEnabled && !hasFrog && (
               <span
                 className={`frog-drag-source ${isDraggingFrog ? "dragging" : ""}`}
@@ -322,7 +346,6 @@ export function TodayView({ currentTime, onNavigate, onStartTaskTimer }: TodayVi
         ) : (
           <div className={`today-tasks ${draggedIndex !== null ? "dragging-active" : ""}`}>
             {todayTasks.map((task, index) => {
-              const goalInfo = task.goalId ? getGoalById(task.goalId) : null;
               const isEditing = editingTaskId === task.id;
               const isDragOver = dragOverIndex === index && draggedIndex !== index;
               const isDragging = draggedIndex === index;
@@ -405,7 +428,7 @@ export function TodayView({ currentTime, onNavigate, onStartTaskTimer }: TodayVi
                           </svg>
                         )}
                       </button>
-                      <div className="task-card-content">
+                      <div className="task-card-content clickable" onClick={() => setSelectedTask(task)}>
                         <div className="task-card-title-row">
                           <p className="task-card-text">{task.text}</p>
                           {frogEnabled && task.isFrog && (
@@ -419,44 +442,14 @@ export function TodayView({ currentTime, onNavigate, onStartTaskTimer }: TodayVi
                           )}
                         </div>
                         {task.description && (
-                          <p className="task-card-description">{task.description}</p>
+                          <p className="task-card-description"><MarkdownText text={task.description} disableLinks /></p>
                         )}
-                        <div className="task-tags-row">
-                          {goalInfo && (
-                            <span className="task-goal-tag">
-                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                                <circle cx="12" cy="12" r="9" />
-                                <circle cx="12" cy="12" r="5" />
-                                <circle cx="12" cy="12" r="1" fill="currentColor" />
-                              </svg>
-                              {goalInfo.sectionTitle}
-                            </span>
-                          )}
+                        <div className="task-card-meta">
                           <span className={`task-category-badge ${task.category || "work"}`}>
                             {task.category === "personal" ? "Personal" : "Work"}
                           </span>
                         </div>
                       </div>
-                      {!task.completed && onStartTaskTimer && (
-                        <button className="task-timer-btn" onClick={() => onStartTaskTimer(task.id, task.text)} title="Start timer">
-                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                            <circle cx="12" cy="12" r="10" />
-                            <polyline points="12 6 12 12 16 14" />
-                          </svg>
-                        </button>
-                      )}
-                      <button className="task-edit" onClick={() => startEditingTask(task)}>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                          <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
-                          <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
-                        </svg>
-                      </button>
-                      <button className="task-delete" onClick={() => deleteTask(task.id)}>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                          <polyline points="3 6 5 6 21 6" />
-                          <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
-                        </svg>
-                      </button>
                     </>
                   )}
                 </div>
@@ -465,6 +458,33 @@ export function TodayView({ currentTime, onNavigate, onStartTaskTimer }: TodayVi
           </div>
         )}
       </div>
+
+      {selectedTask && (
+        <TaskDetailModal
+          task={selectedTask}
+          goalInfo={selectedTask.goalId ? (() => {
+            const goal = getGoalById(selectedTask.goalId);
+            return goal ? { sectionTitle: goal.sectionTitle, goalText: goal.item.text } : null;
+          })() : null}
+          onClose={() => setSelectedTask(null)}
+          onEdit={() => {
+            startEditingTask(selectedTask);
+            setSelectedTask(null);
+          }}
+          onToggleComplete={() => {
+            toggleTaskComplete(selectedTask.id);
+            setSelectedTask(null);
+          }}
+          onStartTimer={onStartTaskTimer ? () => {
+            onStartTaskTimer(selectedTask.id, selectedTask.text);
+            setSelectedTask(null);
+          } : undefined}
+          onDelete={() => {
+            deleteTask(selectedTask.id);
+            setSelectedTask(null);
+          }}
+        />
+      )}
     </div>
   );
 }

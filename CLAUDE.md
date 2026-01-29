@@ -94,6 +94,7 @@ interface AppData {
   theme?: string;                    // "grove" | "editorial" | "obsidian" | "paper"
   appleMusicEnabled?: boolean;       // Show now playing bar (default: true)
   frogEnabled?: boolean;             // Enable eat the frog feature (default: true)
+  atcDays?: string[];                // YYYY-MM-DD dates marked as ATC/on-call days
   sections: Section[];               // Goals organized by period
   notifications: NotificationSettings;
   quickNotes?: QuickNote[];

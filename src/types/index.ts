@@ -110,6 +110,7 @@ export interface AppData {
   frogEnabled?: boolean;
   activeTimer?: ActiveTimer;
   activeTimers?: ActiveTimer[];
+  atcDays?: string[];
 }
 
 export type NavView = "today" | "tasks" | "goals" | "notes" | "bragdoc" | "settings";

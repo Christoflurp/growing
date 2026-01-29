@@ -7,9 +7,11 @@ import { useConfetti } from "../../hooks/useConfetti";
 import { useConfirmModal } from "../../context/ConfirmModalContext";
 import { isToday, isFutureDate } from "../../utils/dateUtils";
 import { formatDateHeader } from "../../utils/formatUtils";
-import { Todo } from "../../types";
+import { Todo, DailyTask } from "../../types";
 import { FrogIcon } from "../shared/FrogIcon";
 import { CategoryToggle } from "../shared/CategoryToggle";
+import { MarkdownText } from "../shared/MarkdownText";
+import { TaskDetailModal } from "../shared/TaskDetailModal";
 
 interface TasksViewProps {
   selectedDate: string;
@@ -28,6 +30,7 @@ export function TasksView({ selectedDate, onOpenDatePicker, onOpenSchedulePicker
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [isDraggingFrog, setIsDraggingFrog] = useState(false);
   const [frogDropTarget, setFrogDropTarget] = useState<string | null>(null);
+  const [selectedTask, setSelectedTask] = useState<DailyTask | null>(null);
   const taskListRef = useRef<HTMLDivElement | null>(null);
   const taskRefs = useRef<(HTMLDivElement | null)[]>([]);
 
@@ -324,7 +327,6 @@ export function TasksView({ selectedDate, onOpenDatePicker, onOpenSchedulePicker
           ref={taskListRef}
         >
           {getTasksForDate(selectedDate).map((task, index) => {
-            const goalInfo = task.goalId ? getGoalById(task.goalId) : null;
             const isEditing = editingTaskId === task.id;
             const isMoved = !!task.movedToDate;
             const isDragOver = dragOverIndex === index && draggedIndex !== index;
@@ -401,7 +403,7 @@ export function TasksView({ selectedDate, onOpenDatePicker, onOpenSchedulePicker
                         </svg>
                       )}
                     </button>
-                    <div className="task-card-content">
+                    <div className={`task-card-content ${!isMoved ? "clickable" : ""}`} onClick={() => !isMoved && setSelectedTask(task)}>
                       <div className="task-card-title-row">
                         <p className="task-card-text">{task.text}</p>
                         {frogEnabled && task.isFrog && (
@@ -414,7 +416,14 @@ export function TasksView({ selectedDate, onOpenDatePicker, onOpenSchedulePicker
                           </span>
                         )}
                       </div>
-                      {task.description && <p className="task-card-description">{task.description}</p>}
+                      {task.description && (
+                        <p className="task-card-description"><MarkdownText text={task.description} disableLinks /></p>
+                      )}
+                      <div className="task-card-meta">
+                        <span className={`task-category-badge ${task.category || "work"}`}>
+                          {task.category === "personal" ? "Personal" : "Work"}
+                        </span>
+                      </div>
                       {isMoved && (
                         <span className="task-moved-tag">
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -424,60 +433,7 @@ export function TasksView({ selectedDate, onOpenDatePicker, onOpenSchedulePicker
                           Moved to {new Date(task.movedToDate! + "T12:00:00").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
                         </span>
                       )}
-                      {!isMoved && (
-                        <div className="task-tags-row">
-                          {goalInfo && (
-                            <span className="task-goal-tag">
-                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                                <circle cx="12" cy="12" r="9" />
-                                <circle cx="12" cy="12" r="5" />
-                                <circle cx="12" cy="12" r="1" fill="currentColor" />
-                              </svg>
-                              {goalInfo.sectionTitle}
-                            </span>
-                          )}
-                          <span className={`task-category-badge ${task.category || "work"}`}>
-                            {task.category === "personal" ? "Personal" : "Work"}
-                          </span>
-                        </div>
-                      )}
                     </div>
-                    {!isMoved && (
-                      <>
-                        {!task.completed && (
-                          <button className="task-defer" onClick={() => deferTaskToBacklog(task)} title="Move to backlog">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                              <line x1="8" y1="6" x2="21" y2="6" />
-                              <line x1="8" y1="12" x2="21" y2="12" />
-                              <line x1="8" y1="18" x2="21" y2="18" />
-                              <line x1="3" y1="6" x2="3.01" y2="6" />
-                              <line x1="3" y1="12" x2="3.01" y2="12" />
-                              <line x1="3" y1="18" x2="3.01" y2="18" />
-                            </svg>
-                          </button>
-                        )}
-                        {!task.completed && onStartTaskTimer && (
-                          <button className="task-timer-btn" onClick={() => onStartTaskTimer(task.id, task.text)} title="Start timer">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                              <circle cx="12" cy="12" r="10" />
-                              <polyline points="12 6 12 12 16 14" />
-                            </svg>
-                          </button>
-                        )}
-                        <button className="task-edit" onClick={() => startEditingTask(task)}>
-                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                            <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
-                            <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
-                          </svg>
-                        </button>
-                        <button className="task-delete" onClick={() => deleteTask(task.id)}>
-                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                            <polyline points="3 6 5 6 21 6" />
-                            <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
-                          </svg>
-                        </button>
-                      </>
-                    )}
                   </>
                 )}
               </div>
@@ -522,12 +478,9 @@ export function TasksView({ selectedDate, onOpenDatePicker, onOpenSchedulePicker
               return (
                 <div key={date} className="future-date-group">
                   <span className="future-date-label">{formatDateHeader(date)}</span>
-                  {tasksForDate.map((task) => {
-                    const goalInfo = task.goalId ? getGoalById(task.goalId) : null;
-                    return (
+                  {tasksForDate.map((task) => (
                       <div key={task.id} className="future-task-item clickable" onClick={() => openTaskEditModal(task)}>
                         <span className="future-task-text">{task.text}</span>
-                        {goalInfo && <span className="task-goal-tag small">{goalInfo.sectionTitle}</span>}
                         <button
                           className="unschedule-btn"
                           onClick={(e) => {
@@ -546,8 +499,8 @@ export function TasksView({ selectedDate, onOpenDatePicker, onOpenSchedulePicker
                           </svg>
                         </button>
                       </div>
-                    );
-                  })}
+                    )
+                  )}
                 </div>
               );
             })}
@@ -684,7 +637,7 @@ export function TasksView({ selectedDate, onOpenDatePicker, onOpenSchedulePicker
                         </button>
                         <div className="backlog-item-content">
                           <p className="backlog-item-text">{todo.text}</p>
-                          {todo.description && <p className="backlog-item-description">{todo.description}</p>}
+                          {todo.description && <p className="backlog-item-description"><MarkdownText text={todo.description} /></p>}
                           {todo.lastScheduledDate && (
                             <span className="task-scheduled-tag">
                               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -725,6 +678,33 @@ export function TasksView({ selectedDate, onOpenDatePicker, onOpenSchedulePicker
             </div>
           )}
         </div>
+      )}
+
+      {selectedTask && (
+        <TaskDetailModal
+          task={selectedTask}
+          goalInfo={selectedTask.goalId ? (() => {
+            const goal = getGoalById(selectedTask.goalId);
+            return goal ? { sectionTitle: goal.sectionTitle, goalText: goal.item.text } : null;
+          })() : null}
+          onClose={() => setSelectedTask(null)}
+          onEdit={() => {
+            startEditingTask(selectedTask);
+            setSelectedTask(null);
+          }}
+          onToggleComplete={() => {
+            toggleTaskComplete(selectedTask.id);
+            setSelectedTask(null);
+          }}
+          onStartTimer={onStartTaskTimer && isToday(selectedDate) ? () => {
+            onStartTaskTimer(selectedTask.id, selectedTask.text);
+            setSelectedTask(null);
+          } : undefined}
+          onDelete={() => {
+            deleteTask(selectedTask.id);
+            setSelectedTask(null);
+          }}
+        />
       )}
     </div>
   );

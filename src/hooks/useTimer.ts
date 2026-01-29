@@ -17,8 +17,11 @@ export function useTimer(options?: UseTimerOptions) {
   const [timerStates, setTimerStates] = useState<Map<string, TimerState>>(new Map());
   const intervalRef = useRef<number | null>(null);
   const expiredTimersRef = useRef<Set<string>>(new Set());
+  const onExpiredRef = useRef(options?.onExpired);
 
-  const activeTimers = data?.activeTimers || [];
+  onExpiredRef.current = options?.onExpired;
+
+  const activeTimers = data?.activeTimers;
 
   const calculateTimeRemaining = useCallback((endTime: string) => {
     const end = new Date(endTime).getTime();
@@ -27,7 +30,9 @@ export function useTimer(options?: UseTimerOptions) {
   }, []);
 
   useEffect(() => {
-    if (activeTimers.length === 0) {
+    const timers = activeTimers || [];
+
+    if (timers.length === 0) {
       setTimerStates(new Map());
       expiredTimersRef.current = new Set();
       if (intervalRef.current) {
@@ -39,14 +44,14 @@ export function useTimer(options?: UseTimerOptions) {
 
     const updateTimerStates = () => {
       const newStates = new Map<string, TimerState>();
-      for (const timer of activeTimers) {
+      for (const timer of timers) {
         const remaining = calculateTimeRemaining(timer.endTime);
         const isExpired = remaining <= 0;
         newStates.set(timer.id, { timer, timeRemaining: remaining, isExpired });
 
         if (isExpired && !expiredTimersRef.current.has(timer.id)) {
           expiredTimersRef.current.add(timer.id);
-          options?.onExpired?.(timer);
+          onExpiredRef.current?.(timer);
         }
       }
       setTimerStates(newStates);
@@ -66,7 +71,7 @@ export function useTimer(options?: UseTimerOptions) {
         intervalRef.current = null;
       }
     };
-  }, [activeTimers, calculateTimeRemaining, options]);
+  }, [activeTimers, calculateTimeRemaining]);
 
   const startTimer = useCallback(
     async (durationMinutes: number, type: "focus" | "task", taskId?: string, taskName?: string) => {
@@ -121,15 +126,15 @@ export function useTimer(options?: UseTimerOptions) {
   }, [timerStates]);
 
   const getFocusTimers = useCallback(() => {
-    return activeTimers.filter((t) => t.type === "focus");
+    return (activeTimers || []).filter((t) => t.type === "focus");
   }, [activeTimers]);
 
   const getTaskTimer = useCallback((taskId: string): ActiveTimer | undefined => {
-    return activeTimers.find((t) => t.type === "task" && t.taskId === taskId);
+    return (activeTimers || []).find((t) => t.type === "task" && t.taskId === taskId);
   }, [activeTimers]);
 
   return {
-    activeTimers,
+    activeTimers: activeTimers || [],
     timerStates,
     startTimer,
     stopTimer,

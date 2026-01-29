@@ -2,6 +2,7 @@ import { useAppData } from "../../context/AppDataContext";
 import { useBragDocs } from "../../hooks/useBragDocs";
 import { useConfirmModal } from "../../context/ConfirmModalContext";
 import { formatRelativeTime, formatFullDate } from "../../utils/formatUtils";
+import { MarkdownText } from "../shared/MarkdownText";
 
 interface BragDocViewProps {
   onOpenLightbox: (imageUrl: string) => void;
@@ -120,7 +121,7 @@ export function BragDocView({ onOpenLightbox }: BragDocViewProps) {
           {data?.bragDocs?.map((entry) => (
             <div key={entry.id} className="bragdoc-card">
               <h3 className="bragdoc-card-title">{entry.title}</h3>
-              <p className="bragdoc-card-text">{entry.text}</p>
+              <p className="bragdoc-card-text"><MarkdownText text={entry.text} /></p>
               {entry.links && entry.links.length > 0 && (
                 <div className="bragdoc-card-links">
                   {entry.links.map((link, i) => (

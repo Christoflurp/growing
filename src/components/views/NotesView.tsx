@@ -2,6 +2,7 @@ import { useAppData } from "../../context/AppDataContext";
 import { useQuickNotes } from "../../hooks/useQuickNotes";
 import { useConfirmModal } from "../../context/ConfirmModalContext";
 import { formatRelativeTime, formatFullDate } from "../../utils/formatUtils";
+import { MarkdownText } from "../shared/MarkdownText";
 
 interface NotesViewProps {
   onShowQuickNote: () => void;
@@ -40,7 +41,7 @@ export function NotesView({ onShowQuickNote }: NotesViewProps) {
         <div className="notes-list">
           {data?.quickNotes?.map((note) => (
             <div key={note.id} className="note-card">
-              <p className="note-text">{note.text}</p>
+              <p className="note-text"><MarkdownText text={note.text} /></p>
               <div className="note-footer">
                 <span className="note-timestamp" title={formatFullDate(note.timestamp)}>
                   {formatRelativeTime(note.timestamp)}

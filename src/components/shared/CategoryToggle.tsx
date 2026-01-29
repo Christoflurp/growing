@@ -10,14 +10,14 @@ export function CategoryToggle({ value, onChange }: CategoryToggleProps) {
     <div className="category-toggle">
       <button
         type="button"
-        className={`category-btn ${value === "work" ? "active" : ""}`}
+        className={`category-btn work ${value === "work" ? "active" : ""}`}
         onClick={() => onChange("work")}
       >
         Work
       </button>
       <button
         type="button"
-        className={`category-btn ${value === "personal" ? "active" : ""}`}
+        className={`category-btn personal ${value === "personal" ? "active" : ""}`}
         onClick={() => onChange("personal")}
       >
         Personal
