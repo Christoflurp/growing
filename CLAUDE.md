@@ -102,12 +102,13 @@ interface AppData {
   todos?: Todo[];                    // Backlog items
   featureRequests?: FeatureRequest[];
   bugReports?: BugReport[];
-  activeTimer?: ActiveTimer;         // Currently running timer
+  activeTimers?: ActiveTimer[];      // Currently running timers (supports multiple)
 }
 
 type TaskCategory = "work" | "personal";
 
 interface ActiveTimer {
+  id: string;                        // Unique identifier for the timer
   type: "focus" | "task";            // Generic timer or task timebox
   taskId?: string;                   // For task timeboxes
   taskName?: string;                 // Display name
@@ -212,10 +213,110 @@ interface Todo {
 4. Create view component in `src/components/views/`
 5. Add navigation in `Navigation.tsx`
 
+## Release Process
+
+When the user says "let's do a new release", follow this process.
+
+### Step 1: Gather Release Info (Claude)
+
+1. Read open feature requests and bug reports from app data:
+   `~/Library/Application Support/com.christoflurp.growing/data.json`
+2. Identify which items were completed this release cycle
+3. Determine the new version number (SEMVER):
+   - **MAJOR** - Breaking changes
+   - **MINOR** - New features (most releases)
+   - **PATCH** - Bug fixes only
+4. Ask user for release date (default: upcoming Friday)
+
+### Step 2: Update Version Files (Claude)
+
+Update version string in all three locations:
+
+| File | Field |
+|------|-------|
+| `package.json` | `"version"` |
+| `src-tauri/tauri.conf.json` | `"version"` |
+| `src/data/changelog.ts` | `APP_VERSION` constant |
+
+### Step 3: Update Changelogs (Claude)
+
+**src/data/changelog.ts** - In-app changelog:
+- Add new entry to `changelog` array (after "Unreleased")
+- Include version, date, title, and changes array
+- Move any items from "Unreleased" to the new version
+
+**CHANGELOG.md** - Markdown changelog:
+- Add new `## [X.X.X] - YYYY-MM-DD` section
+- Use Keep a Changelog format (Added/Changed/Fixed/Removed)
+- Be descriptive but concise
+
+### Step 4: Mark Completed Items (Claude)
+
+In app data (`~/Library/Application Support/com.christoflurp.growing/data.json`):
+- Set `completed: true` on finished `featureRequests`
+- Set `completed: true` on finished `bugReports`
+
+### Step 5: Verify TypeScript (Claude)
+
+Run type check and report any errors:
+
+```bash
+npx tsc --noEmit
+```
+
+### Step 6: Manual Steps (User)
+
+After Claude completes steps 1-5, the user must:
+
+1. **Review changes** - Check the changelog entries look correct
+2. **Build the app**:
+   ```bash
+   npm run tauri build
+   ```
+3. **Test the build** - Launch from `src-tauri/target/release/bundle/macos/Growing.app`
+   - Verify new features work
+   - Check for regressions
+   - Test on fresh data if needed
+4. **Install** (optional):
+   ```bash
+   npm run install-app
+   ```
+
+### Step 7: Git Workflow (User)
+
+After testing confirms the release is ready:
+
+```bash
+git add -A
+git commit -m "Release vX.X.X"
+git tag vX.X.X
+git push && git push --tags
+```
+
+### Step 8: Post-Release (Claude)
+
+After user confirms the release is complete:
+- Update README.md if features warrant it
+- Add any follow-up items to feature requests
+
+### Release Checklist Summary
+
+| Step | Owner | Task |
+|------|-------|------|
+| 1 | Claude | Gather completed features/bugs |
+| 2 | Claude | Bump version in 3 files |
+| 3 | Claude | Update both changelogs |
+| 4 | Claude | Mark items complete in app data |
+| 5 | Claude | Run `npx tsc --noEmit` |
+| 6 | User | Build and test: `npm run tauri build` |
+| 7 | User | Git commit and tag |
+| 8 | Claude | Post-release updates (if needed) |
+
 ## Build & Distribution
 
 ```bash
 npm run tauri build      # Creates DMG in src-tauri/target/release/bundle/
+npm run install-app      # Build and copy to /Applications
 ```
 
 The DMG can be distributed directly - users drag to Applications folder.
