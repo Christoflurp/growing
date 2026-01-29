@@ -31,6 +31,16 @@ export function AppDataProvider({
   const loadData = async () => {
     const loadedData = await invoke<AppData>("load_data");
     const normalizedData = { ...loadedData, quickNotes: loadedData.quickNotes || [] };
+
+    if (normalizedData.activeTimer && !normalizedData.activeTimers?.length) {
+      const migratedTimer = {
+        ...normalizedData.activeTimer,
+        id: normalizedData.activeTimer.id || crypto.randomUUID(),
+      };
+      normalizedData.activeTimers = [migratedTimer];
+      normalizedData.activeTimer = undefined;
+    }
+
     setData(normalizedData);
     return normalizedData;
   };

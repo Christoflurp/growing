@@ -310,6 +310,7 @@ fn default_category() -> String {
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct ActiveTimer {
+    pub id: String,
     #[serde(rename = "type")]
     pub timer_type: String,
     #[serde(default, rename = "taskId", skip_serializing_if = "Option::is_none")]
@@ -390,6 +391,8 @@ pub struct AppData {
     pub frog_enabled: bool,
     #[serde(default, rename = "activeTimer", skip_serializing_if = "Option::is_none")]
     pub active_timer: Option<ActiveTimer>,
+    #[serde(default, rename = "activeTimers", skip_serializing_if = "Vec::is_empty")]
+    pub active_timers: Vec<ActiveTimer>,
 }
 
 fn default_theme() -> String {

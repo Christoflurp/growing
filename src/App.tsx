@@ -44,8 +44,8 @@ interface AppContentProps {
   alertOverlay: { show: boolean; title: string; body: string; type: string } | null;
   onDismissAlert: () => void;
   nowPlaying: NowPlayingInfo | null;
-  onTimerExpired: (type: "focus" | "task", taskName?: string) => void;
-  onRegisterStopTimer: (stopFn: () => void) => void;
+  onTimerExpired: (type: "focus" | "task", taskName?: string, timerId?: string) => void;
+  onRegisterStopTimer: (stopFn: (timerId?: string) => void) => void;
 }
 
 function AppContent({ alertOverlay, onDismissAlert, nowPlaying, onTimerExpired, onRegisterStopTimer }: AppContentProps) {
@@ -98,21 +98,21 @@ function AppContent({ alertOverlay, onDismissAlert, nowPlaying, onTimerExpired, 
 
   const { lightboxImage, openLightbox, closeLightbox } = useBragDocs();
 
-  const handleTimerExpired = useCallback((timer: { type: string; taskName?: string }) => {
-    onTimerExpired(timer.type as "focus" | "task", timer.taskName);
+  const handleTimerExpired = useCallback((timer: { type: string; taskName?: string; id: string }) => {
+    onTimerExpired(timer.type as "focus" | "task", timer.taskName, timer.id);
   }, [onTimerExpired]);
 
   const {
-    activeTimer,
-    timeRemaining,
-    isExpired,
+    activeTimers,
+    timerStates,
     startTimer,
     stopTimer,
     formatTime,
+    getFocusTimers,
   } = useTimer({ onExpired: handleTimerExpired });
 
   useEffect(() => {
-    onRegisterStopTimer(stopTimer);
+    onRegisterStopTimer(() => stopTimer());
   }, [stopTimer, onRegisterStopTimer]);
 
   const [activeView, setActiveView] = useState<NavView>("today");
@@ -310,17 +310,23 @@ function AppContent({ alertOverlay, onDismissAlert, nowPlaying, onTimerExpired, 
         onStartFocusTimer={openFocusTimer}
       />
 
-      {activeTimer && activeTimer.type === "focus" && timeRemaining !== null && (
-        <TimerBar
-          type="focus"
-          taskName={activeTimer.taskName}
-          timeRemaining={timeRemaining}
-          totalDuration={activeTimer.durationMinutes}
-          isExpired={isExpired || false}
-          formatTime={formatTime}
-          onStop={stopTimer}
-        />
-      )}
+      {getFocusTimers().map((timer) => {
+        const state = timerStates.get(timer.id);
+        if (!state) return null;
+        return (
+          <TimerBar
+            key={timer.id}
+            timerId={timer.id}
+            type="focus"
+            taskName={timer.taskName}
+            timeRemaining={state.timeRemaining}
+            totalDuration={timer.durationMinutes}
+            isExpired={state.isExpired}
+            formatTime={formatTime}
+            onStop={stopTimer}
+          />
+        );
+      })}
 
       {data.appleMusicEnabled !== false && <NowPlayingBar nowPlaying={nowPlaying} />}
 
@@ -434,15 +440,22 @@ function AppContent({ alertOverlay, onDismissAlert, nowPlaying, onTimerExpired, 
         />
       )}
 
-      {activeTimer && activeTimer.type === "task" && timeRemaining !== null && timeRemaining > 0 && (
-        <TimeboxOverlay
-          taskName={activeTimer.taskName}
-          timeRemaining={timeRemaining}
-          totalDuration={activeTimer.durationMinutes}
-          formatTime={formatTime}
-          onStop={stopTimer}
-        />
-      )}
+      {activeTimers.filter((t) => t.type === "task").map((timer) => {
+        const state = timerStates.get(timer.id);
+        if (!state || state.timeRemaining <= 0) return null;
+        return (
+          <TimeboxOverlay
+            key={timer.id}
+            timerId={timer.id}
+            taskName={timer.taskName}
+            timeRemaining={state.timeRemaining}
+            totalDuration={timer.durationMinutes}
+            formatTime={formatTime}
+            onStop={stopTimer}
+            nowPlaying={nowPlaying}
+          />
+        );
+      })}
     </div>
   );
 }
@@ -455,7 +468,8 @@ function App() {
     type: string;
   } | null>(null);
   const [nowPlaying, setNowPlaying] = useState<NowPlayingInfo | null>(null);
-  const stopTimerRef = useRef<(() => void) | null>(null);
+  const stopTimerRef = useRef<((timerId?: string) => void) | null>(null);
+  const expiredTimerIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     invoke<NowPlayingInfo>("get_now_playing").then(setNowPlaying);
@@ -485,9 +499,10 @@ function App() {
     });
   }, []);
 
-  const handleTimerExpired = useCallback((type: "focus" | "task", timerName?: string) => {
+  const handleTimerExpired = useCallback((type: "focus" | "task", timerName?: string, timerId?: string) => {
     getCurrentWindow().show();
     getCurrentWindow().setFocus();
+    expiredTimerIdRef.current = timerId || null;
     if (type === "focus") {
       setAlertOverlay({
         show: true,
@@ -507,13 +522,14 @@ function App() {
     }
   }, []);
 
-  const handleRegisterStopTimer = useCallback((stopFn: () => void) => {
+  const handleRegisterStopTimer = useCallback((stopFn: (timerId?: string) => void) => {
     stopTimerRef.current = stopFn;
   }, []);
 
   const handleDismissAlert = useCallback(() => {
-    if (alertOverlay?.type === "timer" && stopTimerRef.current) {
-      stopTimerRef.current();
+    if (alertOverlay?.type === "timer" && stopTimerRef.current && expiredTimerIdRef.current) {
+      stopTimerRef.current(expiredTimerIdRef.current);
+      expiredTimerIdRef.current = null;
     }
     setAlertOverlay(null);
   }, [alertOverlay?.type]);

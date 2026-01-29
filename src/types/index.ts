@@ -60,6 +60,7 @@ export interface DailyTask {
 }
 
 export interface ActiveTimer {
+  id: string;
   type: "focus" | "task";
   taskId?: string;
   taskName?: string;
@@ -108,6 +109,7 @@ export interface AppData {
   appleMusicEnabled?: boolean;
   frogEnabled?: boolean;
   activeTimer?: ActiveTimer;
+  activeTimers?: ActiveTimer[];
 }
 
 export type NavView = "today" | "tasks" | "goals" | "notes" | "bragdoc" | "settings";

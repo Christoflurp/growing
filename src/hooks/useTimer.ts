@@ -2,29 +2,34 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { useAppData } from "../context/AppDataContext";
 import { ActiveTimer } from "../types";
 
+interface TimerState {
+  timer: ActiveTimer;
+  timeRemaining: number;
+  isExpired: boolean;
+}
+
 interface UseTimerOptions {
   onExpired?: (timer: ActiveTimer) => void;
 }
 
 export function useTimer(options?: UseTimerOptions) {
   const { data, saveData } = useAppData();
-  const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
+  const [timerStates, setTimerStates] = useState<Map<string, TimerState>>(new Map());
   const intervalRef = useRef<number | null>(null);
-  const hasTriggeredExpiredRef = useRef<string | null>(null);
+  const expiredTimersRef = useRef<Set<string>>(new Set());
 
-  const activeTimer = data?.activeTimer || null;
+  const activeTimers = data?.activeTimers || [];
 
   const calculateTimeRemaining = useCallback((endTime: string) => {
     const end = new Date(endTime).getTime();
     const now = Date.now();
-    const remaining = Math.max(0, Math.floor((end - now) / 1000));
-    return remaining;
+    return Math.max(0, Math.floor((end - now) / 1000));
   }, []);
 
   useEffect(() => {
-    if (!activeTimer) {
-      setTimeRemaining(null);
-      hasTriggeredExpiredRef.current = null;
+    if (activeTimers.length === 0) {
+      setTimerStates(new Map());
+      expiredTimersRef.current = new Set();
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
@@ -32,31 +37,28 @@ export function useTimer(options?: UseTimerOptions) {
       return;
     }
 
-    const remaining = calculateTimeRemaining(activeTimer.endTime);
-    setTimeRemaining(remaining);
+    const updateTimerStates = () => {
+      const newStates = new Map<string, TimerState>();
+      for (const timer of activeTimers) {
+        const remaining = calculateTimeRemaining(timer.endTime);
+        const isExpired = remaining <= 0;
+        newStates.set(timer.id, { timer, timeRemaining: remaining, isExpired });
 
-    if (remaining <= 0) {
-      if (hasTriggeredExpiredRef.current !== activeTimer.endTime) {
-        hasTriggeredExpiredRef.current = activeTimer.endTime;
-        options?.onExpired?.(activeTimer);
+        if (isExpired && !expiredTimersRef.current.has(timer.id)) {
+          expiredTimersRef.current.add(timer.id);
+          options?.onExpired?.(timer);
+        }
       }
-      return;
+      setTimerStates(newStates);
+    };
+
+    updateTimerStates();
+
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
     }
 
-    intervalRef.current = window.setInterval(() => {
-      const newRemaining = calculateTimeRemaining(activeTimer.endTime);
-      setTimeRemaining(newRemaining);
-      if (newRemaining <= 0) {
-        if (intervalRef.current) {
-          clearInterval(intervalRef.current);
-          intervalRef.current = null;
-        }
-        if (hasTriggeredExpiredRef.current !== activeTimer.endTime) {
-          hasTriggeredExpiredRef.current = activeTimer.endTime;
-          options?.onExpired?.(activeTimer);
-        }
-      }
-    }, 1000);
+    intervalRef.current = window.setInterval(updateTimerStates, 1000);
 
     return () => {
       if (intervalRef.current) {
@@ -64,38 +66,49 @@ export function useTimer(options?: UseTimerOptions) {
         intervalRef.current = null;
       }
     };
-  }, [activeTimer, calculateTimeRemaining, options]);
+  }, [activeTimers, calculateTimeRemaining, options]);
 
   const startTimer = useCallback(
     async (durationMinutes: number, type: "focus" | "task", taskId?: string, taskName?: string) => {
       if (!data) return;
       const endTime = new Date(Date.now() + durationMinutes * 60 * 1000).toISOString();
       const newTimer: ActiveTimer = {
+        id: crypto.randomUUID(),
         type,
         taskId,
         taskName,
         endTime,
         durationMinutes,
       };
+      const existingTimers = data.activeTimers || [];
       const newData = {
         ...data,
-        activeTimer: newTimer,
+        activeTimers: [...existingTimers, newTimer],
+        activeTimer: undefined,
       };
       await saveData(newData);
     },
     [data, saveData]
   );
 
-  const stopTimer = useCallback(async () => {
+  const stopTimer = useCallback(async (timerId?: string) => {
     if (!data) return;
+    const existingTimers = data.activeTimers || [];
+
+    let newTimers: ActiveTimer[];
+    if (timerId) {
+      newTimers = existingTimers.filter((t) => t.id !== timerId);
+    } else {
+      newTimers = [];
+    }
+
     const newData = {
       ...data,
+      activeTimers: newTimers,
       activeTimer: undefined,
     };
     await saveData(newData);
   }, [data, saveData]);
-
-  const isExpired = activeTimer && timeRemaining !== null && timeRemaining <= 0;
 
   const formatTime = useCallback((seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -103,12 +116,26 @@ export function useTimer(options?: UseTimerOptions) {
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   }, []);
 
+  const getTimerState = useCallback((timerId: string): TimerState | undefined => {
+    return timerStates.get(timerId);
+  }, [timerStates]);
+
+  const getFocusTimers = useCallback(() => {
+    return activeTimers.filter((t) => t.type === "focus");
+  }, [activeTimers]);
+
+  const getTaskTimer = useCallback((taskId: string): ActiveTimer | undefined => {
+    return activeTimers.find((t) => t.type === "task" && t.taskId === taskId);
+  }, [activeTimers]);
+
   return {
-    activeTimer,
-    timeRemaining,
-    isExpired,
+    activeTimers,
+    timerStates,
     startTimer,
     stopTimer,
     formatTime,
+    getTimerState,
+    getFocusTimers,
+    getTaskTimer,
   };
 }

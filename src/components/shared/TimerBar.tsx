@@ -1,14 +1,16 @@
 interface TimerBarProps {
+  timerId: string;
   type: "focus" | "task";
   taskName?: string;
   timeRemaining: number;
   totalDuration: number;
   isExpired: boolean;
   formatTime: (seconds: number) => string;
-  onStop: () => void;
+  onStop: (timerId: string) => void;
 }
 
 export function TimerBar({
+  timerId,
   type,
   taskName,
   timeRemaining,
@@ -46,7 +48,7 @@ export function TimerBar({
             <span className="timer-countdown">{formatTime(timeRemaining)}</span>
           )}
         </div>
-        <button className="timer-bar-stop" onClick={onStop} title="Stop timer">
+        <button className="timer-bar-stop" onClick={() => onStop(timerId)} title="Stop timer">
           <svg viewBox="0 0 24 24" fill="currentColor">
             <rect x="6" y="6" width="12" height="12" rx="2" />
           </svg>
