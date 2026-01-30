@@ -102,6 +102,8 @@ export interface AppData {
   todos?: Todo[];
   featureRequests?: FeatureRequest[];
   bugReports?: BugReport[];
+  curiosities?: Curiosity[];
+  reviews?: Review[];
   theme?: string;
   darkMode?: boolean;
   userName?: string;
@@ -113,7 +115,29 @@ export interface AppData {
   atcDays?: string[];
 }
 
-export type NavView = "today" | "tasks" | "goals" | "notes" | "bragdoc" | "settings";
+export type NavView = "today" | "tasks" | "goals" | "notes" | "bragdoc" | "curiosities" | "reviews" | "settings";
+
+export interface Curiosity {
+  id: string;
+  title: string;
+  description: string;
+  completed: boolean;
+  completedAt?: string;
+  createdAt: string;
+}
+
+export type ReviewSource = "github" | "graphite";
+
+export interface Review {
+  id: string;
+  prLink: string;
+  title: string;
+  source: ReviewSource;
+  completed: boolean;
+  completedAt?: string;
+  createdAt: string;
+  date: string;
+}
 
 export interface NowPlayingInfo {
   is_playing: boolean;
@@ -123,4 +147,5 @@ export interface NowPlayingInfo {
   album_year?: number;
   duration?: number;
   position?: number;
+  artwork?: string;
 }

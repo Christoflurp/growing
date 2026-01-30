@@ -1,72 +1,136 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 
-export type NavView = "today" | "tasks" | "goals" | "notes" | "bragdoc" | "settings";
+export type NavView = "today" | "tasks" | "goals" | "notes" | "bragdoc" | "curiosities" | "reviews" | "settings";
 
-const navItems: { view: NavView; title: string; icon: React.ReactNode }[] = [
-  {
-    view: "today",
-    title: "Today",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-        <circle cx="12" cy="12" r="10" />
-        <polyline points="12 6 12 12 16 14" />
-      </svg>
-    ),
-  },
-  {
-    view: "tasks",
-    title: "Tasks",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-        <path d="M9 11l3 3L22 4" />
-        <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" />
-      </svg>
-    ),
-  },
-  {
-    view: "goals",
-    title: "Goals",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-        <circle cx="12" cy="12" r="9" />
-        <circle cx="12" cy="12" r="5" />
-        <circle cx="12" cy="12" r="1" fill="currentColor" />
-      </svg>
-    ),
-  },
-  {
-    view: "notes",
-    title: "Notes",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-        <path d="M14 3v4a1 1 0 001 1h4" />
-        <path d="M17 21H7a2 2 0 01-2-2V5a2 2 0 012-2h7l5 5v11a2 2 0 01-2 2z" />
-        <line x1="9" y1="9" x2="10" y2="9" />
-        <line x1="9" y1="13" x2="15" y2="13" />
-        <line x1="9" y1="17" x2="15" y2="17" />
-      </svg>
-    ),
-  },
-  {
-    view: "bragdoc",
-    title: "Brag Doc",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-      </svg>
-    ),
-  },
-  {
-    view: "settings",
-    title: "Settings",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-        <circle cx="12" cy="12" r="3" />
-        <path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
-      </svg>
-    ),
-  },
-];
+interface NavItem {
+  view: NavView;
+  title: string;
+  icon: React.ReactNode;
+}
+
+interface NavGroup {
+  id: string;
+  title: string;
+  icon: React.ReactNode;
+  items: NavItem[];
+}
+
+const todayItem: NavItem = {
+  view: "today",
+  title: "Today",
+  icon: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <circle cx="12" cy="12" r="10" />
+      <polyline points="12 6 12 12 16 14" />
+    </svg>
+  ),
+};
+
+const planGroup: NavGroup = {
+  id: "plan",
+  title: "Plan",
+  icon: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" />
+      <rect x="9" y="3" width="6" height="4" rx="1" />
+      <line x1="9" y1="12" x2="15" y2="12" />
+      <line x1="9" y1="16" x2="13" y2="16" />
+    </svg>
+  ),
+  items: [
+    {
+      view: "tasks",
+      title: "Tasks",
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <path d="M9 11l3 3L22 4" />
+          <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" />
+        </svg>
+      ),
+    },
+    {
+      view: "goals",
+      title: "Goals",
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <circle cx="12" cy="12" r="9" />
+          <circle cx="12" cy="12" r="5" />
+          <circle cx="12" cy="12" r="1" fill="currentColor" />
+        </svg>
+      ),
+    },
+  ],
+};
+
+const captureGroup: NavGroup = {
+  id: "capture",
+  title: "Capture",
+  icon: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2z" />
+      <line x1="12" y1="8" x2="12" y2="16" />
+      <line x1="8" y1="12" x2="16" y2="12" />
+    </svg>
+  ),
+  items: [
+    {
+      view: "notes",
+      title: "Notes",
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <path d="M14 3v4a1 1 0 001 1h4" />
+          <path d="M17 21H7a2 2 0 01-2-2V5a2 2 0 012-2h7l5 5v11a2 2 0 01-2 2z" />
+          <line x1="9" y1="9" x2="10" y2="9" />
+          <line x1="9" y1="13" x2="15" y2="13" />
+          <line x1="9" y1="17" x2="15" y2="17" />
+        </svg>
+      ),
+    },
+    {
+      view: "bragdoc",
+      title: "Brag Doc",
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+        </svg>
+      ),
+    },
+    {
+      view: "curiosities",
+      title: "Curiosities",
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <circle cx="12" cy="12" r="10" />
+          <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" />
+          <line x1="12" y1="17" x2="12.01" y2="17" />
+        </svg>
+      ),
+    },
+  ],
+};
+
+const reviewsItem: NavItem = {
+  view: "reviews",
+  title: "Reviews",
+  icon: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <circle cx="12" cy="12" r="10" />
+      <line x1="2" y1="12" x2="22" y2="12" />
+      <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" />
+    </svg>
+  ),
+};
+
+const settingsItem: NavItem = {
+  view: "settings",
+  title: "Settings",
+  icon: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <circle cx="12" cy="12" r="3" />
+      <path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+    </svg>
+  ),
+};
 
 interface TabNavProps {
   activeView: NavView;
@@ -82,6 +146,10 @@ interface TabNavProps {
   onOpenFeatureRequests?: () => void;
   onOpenBugReports?: () => void;
   onStartFocusTimer?: () => void;
+  onAddCuriosity?: () => void;
+  onAddReview?: () => void;
+  onAddTask?: () => void;
+  onAddBragDoc?: () => void;
 }
 
 const TabNav: React.FC<TabNavProps> = ({
@@ -98,8 +166,52 @@ const TabNav: React.FC<TabNavProps> = ({
   onOpenFeatureRequests,
   onOpenBugReports,
   onStartFocusTimer,
+  onAddCuriosity,
+  onAddReview,
+  onAddTask,
+  onAddBragDoc,
 }) => {
   const [menuExpanded, setMenuExpanded] = useState(false);
+  const [addDropdownOpen, setAddDropdownOpen] = useState(false);
+  const [expandedGroup, setExpandedGroup] = useState<string | null>(null);
+  const addDropdownRef = useRef<HTMLDivElement>(null);
+  const navGroupsRef = useRef<HTMLDivElement>(null);
+
+  const toggleGroup = (groupId: string) => {
+    setExpandedGroup((prev) => (prev === groupId ? null : groupId));
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (navGroupsRef.current && !navGroupsRef.current.contains(e.target as Node)) {
+        setExpandedGroup(null);
+      }
+    };
+    if (expandedGroup) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [expandedGroup]);
+
+  const isGroupActive = (group: NavGroup) => {
+    return group.items.some((item) => item.view === activeView);
+  };
+
+  const getActiveItemInGroup = (group: NavGroup): NavItem | undefined => {
+    return group.items.find((item) => item.view === activeView);
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (addDropdownRef.current && !addDropdownRef.current.contains(e.target as Node)) {
+        setAddDropdownOpen(false);
+      }
+    };
+    if (addDropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [addDropdownOpen]);
 
   return (
     <nav className="tab-nav">
@@ -206,27 +318,187 @@ const TabNav: React.FC<TabNavProps> = ({
           </button>
         )}
         <div className="tab-nav-items">
-          {navItems.map((item) => (
-            <button
-              key={item.view}
-              className={`tab-nav-item ${activeView === item.view ? "active" : ""}`}
-              onClick={() => onViewChange(item.view)}
-            >
-              {item.icon}
-              <span className="tab-nav-label">{item.title}</span>
-            </button>
-          ))}
+          <button
+            className={`tab-nav-item ${activeView === todayItem.view ? "active" : ""}`}
+            onClick={() => onViewChange(todayItem.view)}
+          >
+            {todayItem.icon}
+            <span className="tab-nav-label">{todayItem.title}</span>
+          </button>
+
+          <div ref={navGroupsRef} className="nav-groups-wrapper">
+            <div className={`nav-group ${isGroupActive(planGroup) ? "group-active" : ""} ${expandedGroup === planGroup.id ? "expanded" : ""}`}>
+              <button
+                className="nav-group-toggle"
+                onClick={() => toggleGroup(planGroup.id)}
+              >
+                {getActiveItemInGroup(planGroup)?.icon || planGroup.icon}
+                <span className="tab-nav-label">
+                  {getActiveItemInGroup(planGroup)?.title || planGroup.title}
+                </span>
+                <svg className="nav-group-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </button>
+              <div className="nav-group-items">
+                {planGroup.items.map((item) => (
+                  <button
+                    key={item.view}
+                    className={`tab-nav-item tab-nav-subitem ${activeView === item.view ? "active" : ""}`}
+                    onClick={() => {
+                      onViewChange(item.view);
+                      setExpandedGroup(null);
+                    }}
+                  >
+                    {item.icon}
+                    <span className="tab-nav-label">{item.title}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className={`nav-group ${isGroupActive(captureGroup) ? "group-active" : ""} ${expandedGroup === captureGroup.id ? "expanded" : ""}`}>
+              <button
+                className="nav-group-toggle"
+                onClick={() => toggleGroup(captureGroup.id)}
+              >
+                {getActiveItemInGroup(captureGroup)?.icon || captureGroup.icon}
+                <span className="tab-nav-label">
+                  {getActiveItemInGroup(captureGroup)?.title || captureGroup.title}
+                </span>
+                <svg className="nav-group-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </button>
+              <div className="nav-group-items">
+                {captureGroup.items.map((item) => (
+                  <button
+                    key={item.view}
+                    className={`tab-nav-item tab-nav-subitem ${activeView === item.view ? "active" : ""}`}
+                    onClick={() => {
+                      onViewChange(item.view);
+                      setExpandedGroup(null);
+                    }}
+                  >
+                    {item.icon}
+                    <span className="tab-nav-label">{item.title}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <button
+            className={`tab-nav-item ${activeView === reviewsItem.view ? "active" : ""}`}
+            onClick={() => onViewChange(reviewsItem.view)}
+          >
+            {reviewsItem.icon}
+            <span className="tab-nav-label">{reviewsItem.title}</span>
+          </button>
+
+          <button
+            className={`tab-nav-item ${activeView === settingsItem.view ? "active" : ""}`}
+            onClick={() => onViewChange(settingsItem.view)}
+          >
+            {settingsItem.icon}
+            <span className="tab-nav-label">{settingsItem.title}</span>
+          </button>
         </div>
-        <button
-          className="tab-nav-add"
-          onClick={onQuickNote}
-          title="Quick note"
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <line x1="12" y1="5" x2="12" y2="19" />
-            <line x1="5" y1="12" x2="19" y2="12" />
-          </svg>
-        </button>
+        <div className="add-dropdown-container" ref={addDropdownRef}>
+          <button
+            className={`tab-nav-add ${addDropdownOpen ? "active" : ""}`}
+            onClick={() => setAddDropdownOpen(!addDropdownOpen)}
+            title="Add new item"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+          </button>
+          {addDropdownOpen && (
+            <div className="add-dropdown">
+              <button
+                className="add-dropdown-item"
+                onClick={() => {
+                  onAddTask?.();
+                  setAddDropdownOpen(false);
+                }}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path d="M9 11l3 3L22 4" />
+                  <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" />
+                </svg>
+                <span>Task</span>
+              </button>
+              <button
+                className="add-dropdown-item"
+                onClick={() => {
+                  onStartFocusTimer?.();
+                  setAddDropdownOpen(false);
+                }}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <circle cx="12" cy="12" r="10" />
+                  <polyline points="12 6 12 12 16 14" />
+                </svg>
+                <span>Timer</span>
+              </button>
+              <button
+                className="add-dropdown-item"
+                onClick={() => {
+                  onQuickNote();
+                  setAddDropdownOpen(false);
+                }}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path d="M14 3v4a1 1 0 001 1h4" />
+                  <path d="M17 21H7a2 2 0 01-2-2V5a2 2 0 012-2h7l5 5v11a2 2 0 01-2 2z" />
+                </svg>
+                <span>Note</span>
+              </button>
+              <button
+                className="add-dropdown-item"
+                onClick={() => {
+                  onAddBragDoc?.();
+                  setAddDropdownOpen(false);
+                }}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                </svg>
+                <span>Brag Doc</span>
+              </button>
+              <button
+                className="add-dropdown-item"
+                onClick={() => {
+                  onAddCuriosity?.();
+                  setAddDropdownOpen(false);
+                }}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" />
+                  <line x1="12" y1="17" x2="12.01" y2="17" />
+                </svg>
+                <span>Curiosity</span>
+              </button>
+              <button
+                className="add-dropdown-item"
+                onClick={() => {
+                  onAddReview?.();
+                  setAddDropdownOpen(false);
+                }}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="2" y1="12" x2="22" y2="12" />
+                  <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" />
+                </svg>
+                <span>Review</span>
+              </button>
+            </div>
+          )}
+        </div>
         <button
           className="nav-timer-btn"
           onClick={onStartFocusTimer}

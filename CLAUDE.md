@@ -27,23 +27,26 @@ npm run tauri build      # Build for production
 - **Quarter-screen sizing** - Auto-sizes to 1/4 of screen on first launch
 - **Auto-reload on wake** - Data refreshes when Mac wakes from sleep
 - **Close to tray** - Closing window hides it; app keeps running
-- **Apple Music integration** - Shows now playing bar below navigation (toggleable in Settings)
+- **Apple Music integration** - Rich widget on Today page with artwork, progress, and transport controls
 - **Eat the Frog** - Mark one task per day as priority with draggable frog icon (toggleable in Settings)
 - **Custom Timers** - Flexible timers with optional naming for any timed activity
 - **Task Timebox** - Full-screen focus overlay blocks app during timeboxed work
 - **Task Categories** - Personal/Work toggle with visual badges on task cards
 - **Confetti** - Celebration animation when all daily tasks are completed
+- **Quick Add Dropdown** - + button opens menu to add tasks, timers, notes, brag docs, curiosities, or reviews
 
-### Views (8 tabs)
+### Views (10 tabs)
 
-1. **Today** - Dashboard with greeting, today's tasks, recent notes, and quick navigation
+1. **Today** - Dashboard with Apple Music widget, today's tasks, reviews count, and quick navigation
 2. **Tasks** - Daily task management with date navigation, carry-forward, and defer-to-backlog
 3. **Backlog** - Unscheduled tasks for future scheduling
 4. **Goals** - Progress tracking organized by timeframe (ongoing/quarterly/monthly)
 5. **Notes** - Quick note capture with timestamps
 6. **Brag Doc** - Accomplishments log with images and links
-7. **Notifications** - Reminder scheduling (daily/weekly)
-8. **Settings** - Theme, permissions, launch-at-login
+7. **Curiosities** - Track things you want to learn with completion status
+8. **Reviews** - Log PR reviews with auto-parsed GitHub links and daily counts
+9. **Notifications** - Reminder scheduling (daily/weekly)
+10. **Settings** - Theme, permissions, launch-at-login
 
 ### Theming
 
@@ -92,7 +95,7 @@ interface AppData {
   onboardingComplete?: boolean;
   darkMode?: boolean;
   theme?: string;                    // "grove" | "editorial" | "obsidian" | "paper"
-  appleMusicEnabled?: boolean;       // Show now playing bar (default: true)
+  appleMusicEnabled?: boolean;       // Show Apple Music widget (default: true)
   frogEnabled?: boolean;             // Enable eat the frog feature (default: true)
   atcDays?: string[];                // YYYY-MM-DD dates marked as ATC/on-call days
   sections: Section[];               // Goals organized by period
@@ -101,6 +104,8 @@ interface AppData {
   bragDocs?: BragDocEntry[];
   dailyTasks?: DailyTask[];
   todos?: Todo[];                    // Backlog items
+  curiosities?: Curiosity[];         // Things to learn
+  reviews?: Review[];                // PR reviews
   featureRequests?: FeatureRequest[];
   bugReports?: BugReport[];
   activeTimers?: ActiveTimer[];      // Currently running timers (supports multiple)
@@ -124,6 +129,7 @@ interface NowPlayingInfo {
   album?: string;
   duration?: number;                 // Total duration in seconds
   position?: number;                 // Current position in seconds
+  artwork?: string;                  // Base64-encoded album artwork
 }
 
 interface Section {
@@ -162,6 +168,26 @@ interface Todo {
   goalId?: string;
   lastScheduledDate?: string;
   createdAt: string;
+}
+
+interface Curiosity {
+  id: string;
+  title: string;
+  description: string;
+  completed: boolean;
+  completedAt?: string;              // ISO 8601 timestamp
+  createdAt: string;
+}
+
+interface Review {
+  id: string;
+  prLink: string;                    // Full GitHub PR URL
+  title: string;                     // Auto-parsed: [org/repo#123]
+  completed: boolean;
+  completedAt?: string;              // ISO 8601 timestamp
+  createdAt: string;
+  date: string;                      // YYYY-MM-DD for daily tracking
+  isReReview?: boolean;              // True if reviewing same PR again
 }
 ```
 

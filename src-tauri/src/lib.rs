@@ -27,6 +27,7 @@ pub struct NowPlayingInfo {
     pub album_year: Option<i32>,
     pub duration: Option<f64>,
     pub position: Option<f64>,
+    pub artwork: Option<String>,
 }
 
 #[cfg(target_os = "macos")]
@@ -38,9 +39,11 @@ fn query_apple_music() -> NowPlayingInfo {
             end if
         end tell
         tell application "Music"
-            if player state is not playing then
-                return "NOT_PLAYING"
+            set currentState to player state
+            if currentState is stopped then
+                return "NOT_RUNNING"
             end if
+            set isPlaying to (currentState is playing)
             set trackName to name of current track
             set trackArtist to artist of current track
             set trackAlbum to album of current track
@@ -51,8 +54,33 @@ fn query_apple_music() -> NowPlayingInfo {
             on error
                 set trackYear to 0
             end try
-            return trackName & "|||" & trackArtist & "|||" & trackAlbum & "|||" & trackYear & "|||" & trackDuration & "|||" & trackPosition
+            set artworkData to ""
+            try
+                if (count of artworks of current track) > 0 then
+                    set rawData to raw data of artwork 1 of current track
+                    set artworkData to my encodeBase64(rawData)
+                end if
+            end try
+            return (isPlaying as string) & "|||" & trackName & "|||" & trackArtist & "|||" & trackAlbum & "|||" & trackYear & "|||" & trackDuration & "|||" & trackPosition & "|||" & artworkData
         end tell
+
+        on encodeBase64(theData)
+            set tempFile to (path to temporary items folder as text) & "growing_artwork.tmp"
+            try
+                set fileRef to open for access file tempFile with write permission
+                set eof fileRef to 0
+                write theData to fileRef
+                close access fileRef
+                set base64Result to do shell script "base64 -i " & quoted form of POSIX path of tempFile
+                do shell script "rm -f " & quoted form of POSIX path of tempFile
+                return base64Result
+            on error
+                try
+                    close access file tempFile
+                end try
+                return ""
+            end try
+        end encodeBase64
     "#;
 
     let output = Command::new("osascript")
@@ -63,19 +91,34 @@ fn query_apple_music() -> NowPlayingInfo {
     match output {
         Ok(out) => {
             let result = String::from_utf8_lossy(&out.stdout).trim().to_string();
-            if result == "NOT_RUNNING" || result == "NOT_PLAYING" || result.is_empty() {
+            if result == "NOT_RUNNING" || result.is_empty() {
                 return NowPlayingInfo::default();
             }
             let parts: Vec<&str> = result.split("|||").collect();
-            if parts.len() >= 6 {
+            if parts.len() >= 7 {
+                let is_playing = parts[0] == "true";
+                let local_artwork = if parts.len() > 7 && !parts[7].is_empty() {
+                    Some(parts[7].replace("\n", "").replace(" ", ""))
+                } else {
+                    None
+                };
+
+                let artist = parts[2].to_string();
+                let album = parts[3].to_string();
+
+                let artwork = local_artwork.or_else(|| {
+                    fetch_itunes_artwork(&artist, &album)
+                });
+
                 NowPlayingInfo {
-                    is_playing: true,
-                    title: Some(parts[0].to_string()),
-                    artist: Some(parts[1].to_string()),
-                    album: Some(parts[2].to_string()),
-                    album_year: parts[3].parse().ok().filter(|&y| y > 0),
-                    duration: parts[4].parse().ok(),
-                    position: parts[5].parse().ok(),
+                    is_playing,
+                    title: Some(parts[1].to_string()),
+                    artist: Some(artist),
+                    album: Some(album),
+                    album_year: parts[4].parse().ok().filter(|&y| y > 0),
+                    duration: parts[5].parse().ok(),
+                    position: parts[6].parse().ok(),
+                    artwork,
                 }
             } else {
                 NowPlayingInfo::default()
@@ -83,6 +126,81 @@ fn query_apple_music() -> NowPlayingInfo {
         }
         Err(_) => NowPlayingInfo::default(),
     }
+}
+
+#[cfg(target_os = "macos")]
+fn fetch_itunes_artwork(artist: &str, album: &str) -> Option<String> {
+    use std::collections::HashMap;
+    use std::sync::Mutex;
+
+    lazy_static::lazy_static! {
+        static ref ARTWORK_CACHE: Mutex<HashMap<String, Option<String>>> = Mutex::new(HashMap::new());
+    }
+
+    let cache_key = format!("{}|{}", artist, album);
+
+    if let Ok(cache) = ARTWORK_CACHE.lock() {
+        if let Some(cached) = cache.get(&cache_key) {
+            return cached.clone();
+        }
+    }
+
+    let search_term = format!("{} {}", artist, album)
+        .replace(" ", "+")
+        .replace("&", "and");
+
+    let url = format!(
+        "https://itunes.apple.com/search?term={}&entity=album&limit=5",
+        search_term
+    );
+
+    let output = Command::new("curl")
+        .arg("-s")
+        .arg("-m")
+        .arg("3")
+        .arg(&url)
+        .output()
+        .ok()?;
+
+    let json_str = String::from_utf8_lossy(&output.stdout);
+
+    let artwork_url = extract_artwork_url(&json_str, album)?;
+    let high_res_url = artwork_url.replace("100x100bb", "300x300bb");
+
+    let img_output = Command::new("curl")
+        .arg("-s")
+        .arg("-m")
+        .arg("3")
+        .arg(&high_res_url)
+        .output()
+        .ok()?;
+
+    if img_output.stdout.is_empty() {
+        return None;
+    }
+
+    use base64::{Engine as _, engine::general_purpose};
+    let base64_img = general_purpose::STANDARD.encode(&img_output.stdout);
+
+    if let Ok(mut cache) = ARTWORK_CACHE.lock() {
+        cache.insert(cache_key, Some(base64_img.clone()));
+    }
+
+    Some(base64_img)
+}
+
+#[cfg(target_os = "macos")]
+fn extract_artwork_url(json: &str, _album: &str) -> Option<String> {
+    let parsed: serde_json::Value = serde_json::from_str(json).ok()?;
+    let results = parsed.get("results")?.as_array()?;
+
+    for result in results {
+        if let Some(url) = result.get("artworkUrl100").and_then(|v| v.as_str()) {
+            return Some(url.to_string());
+        }
+    }
+
+    None
 }
 
 #[cfg(not(target_os = "macos"))]
@@ -103,6 +221,127 @@ fn open_apple_music() {
             .arg("-a")
             .arg("Music")
             .spawn();
+    }
+}
+
+#[tauri::command]
+fn play_pause_music() {
+    #[cfg(target_os = "macos")]
+    {
+        let script = r#"
+            tell application "Music"
+                playpause
+            end tell
+        "#;
+        let _ = Command::new("osascript")
+            .arg("-e")
+            .arg(script)
+            .output();
+    }
+}
+
+#[tauri::command]
+fn next_track() {
+    #[cfg(target_os = "macos")]
+    {
+        let script = r#"
+            tell application "Music"
+                next track
+            end tell
+        "#;
+        let _ = Command::new("osascript")
+            .arg("-e")
+            .arg(script)
+            .output();
+    }
+}
+
+#[tauri::command]
+fn previous_track() {
+    #[cfg(target_os = "macos")]
+    {
+        let script = r#"
+            tell application "Music"
+                previous track
+            end tell
+        "#;
+        let _ = Command::new("osascript")
+            .arg("-e")
+            .arg(script)
+            .output();
+    }
+}
+
+#[tauri::command]
+fn open_artist_in_music(artist: String) {
+    #[cfg(target_os = "macos")]
+    {
+        let encoded_artist = artist.replace(" ", "+").replace("&", "%26");
+        let search_url = format!(
+            "https://itunes.apple.com/search?term={}&entity=musicArtist&limit=1",
+            encoded_artist
+        );
+
+        if let Ok(output) = Command::new("curl")
+            .arg("-s")
+            .arg(&search_url)
+            .output()
+        {
+            if let Ok(json_str) = String::from_utf8(output.stdout) {
+                if let Ok(json) = serde_json::from_str::<serde_json::Value>(&json_str) {
+                    if let Some(artist_id) = json["results"]
+                        .get(0)
+                        .and_then(|r| r["artistId"].as_u64())
+                    {
+                        let url = format!("music://music.apple.com/us/artist/{}", artist_id);
+                        let _ = Command::new("open").arg(&url).output();
+                        return;
+                    }
+                }
+            }
+        }
+
+        let fallback_url = format!("itmss://music.apple.com/search?term={}", encoded_artist);
+        let _ = Command::new("open").arg(&fallback_url).output();
+    }
+}
+
+#[tauri::command]
+fn open_album_in_music(album: String, artist: Option<String>) {
+    #[cfg(target_os = "macos")]
+    {
+        let search_term = if let Some(ref art) = artist {
+            format!("{} {}", album, art)
+        } else {
+            album.clone()
+        };
+        let encoded = search_term.replace(" ", "+").replace("&", "%26");
+        let search_url = format!(
+            "https://itunes.apple.com/search?term={}&entity=album&limit=1",
+            encoded
+        );
+
+        if let Ok(output) = Command::new("curl")
+            .arg("-s")
+            .arg(&search_url)
+            .output()
+        {
+            if let Ok(json_str) = String::from_utf8(output.stdout) {
+                if let Ok(json) = serde_json::from_str::<serde_json::Value>(&json_str) {
+                    if let Some(collection_id) = json["results"]
+                        .get(0)
+                        .and_then(|r| r["collectionId"].as_u64())
+                    {
+                        let url = format!("music://music.apple.com/us/album/{}", collection_id);
+                        let _ = Command::new("open").arg(&url).output();
+                        return;
+                    }
+                }
+            }
+        }
+
+        let fallback_url = format!("itmss://music.apple.com/search?term={}", encoded);
+        let _ = Command::new("open").arg(&fallback_url).output();
     }
 }
 
@@ -362,6 +601,41 @@ pub struct BugReport {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
+pub struct Curiosity {
+    pub id: String,
+    pub title: String,
+    #[serde(default)]
+    pub description: String,
+    #[serde(default)]
+    pub completed: bool,
+    #[serde(default, rename = "completedAt", skip_serializing_if = "Option::is_none")]
+    pub completed_at: Option<String>,
+    #[serde(default, rename = "createdAt")]
+    pub created_at: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+pub struct Review {
+    pub id: String,
+    #[serde(rename = "prLink")]
+    pub pr_link: String,
+    pub title: String,
+    #[serde(default = "default_github_source")]
+    pub source: String,
+    #[serde(default)]
+    pub completed: bool,
+    #[serde(default, rename = "completedAt", skip_serializing_if = "Option::is_none")]
+    pub completed_at: Option<String>,
+    #[serde(default, rename = "createdAt")]
+    pub created_at: String,
+    pub date: String,
+}
+
+fn default_github_source() -> String {
+    "github".to_string()
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct AppData {
     pub sections: Vec<Section>,
     pub notifications: NotificationSettings,
@@ -377,6 +651,10 @@ pub struct AppData {
     pub feature_requests: Vec<FeatureRequest>,
     #[serde(default, rename = "bugReports")]
     pub bug_reports: Vec<BugReport>,
+    #[serde(default)]
+    pub curiosities: Vec<Curiosity>,
+    #[serde(default)]
+    pub reviews: Vec<Review>,
     #[serde(default = "default_theme")]
     pub theme: String,
     #[serde(default, rename = "darkMode")]
@@ -1003,6 +1281,11 @@ pub fn run() {
             request_notification_permission,
             get_now_playing,
             open_apple_music,
+            play_pause_music,
+            next_track,
+            previous_track,
+            open_artist_in_music,
+            open_album_in_music,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -1367,6 +1367,7 @@ version = "1.0.0"
 dependencies = [
  "base64 0.22.1",
  "chrono",
+ "lazy_static",
  "objc",
  "serde",
  "serde_json",

@@ -7,10 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.2.0] - 2026-01-31
+## [1.2.0] - 2026-01-30
 
 ### Added
 
+- Curiosities view for tracking things you want to learn
+  - Add items with title and description
+  - Toggle completion status with visual indicator
+  - Edit and delete existing curiosities
+- Reviews view for logging PR reviews
+  - Paste GitHub PR link, auto-parses to [org/repo#123] format
+  - Re-review checkbox for reviewing same PR multiple times
+  - Clickable links open PR in browser
+- Today page reviews badge showing daily review count
+  - Click badge to navigate to Reviews view
+- Quick add dropdown from + button in navigation
+  - Add tasks, timers, notes, brag docs, curiosities, or reviews from any page
+  - Clean modal interfaces for each item type
+- Rich Apple Music widget on Today page
+  - Album artwork with fallback icon
+  - Progress bar with elapsed and total time
+  - Transport controls (previous, play/pause, next)
+  - Click artist name to open artist page in Apple Music
+  - Click album art or album name to open album in Apple Music
+  - Open Apple Music button below controls
 - Multiple concurrent timers support
   - Run multiple focus timers simultaneously
   - Each timer tracks independently with its own countdown
@@ -33,6 +53,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Today page redesigned with section-based layout
+- Apple Music now playing bar hidden on Today view (replaced by widget)
 - Renamed "Timer" button to "Timebox" in task detail modal
 - Category colors updated: Work (blue), Personal (green)
 - Task cards now show title, description preview, and category badge

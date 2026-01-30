@@ -6,19 +6,23 @@ import { useConfirmModal } from "../../context/ConfirmModalContext";
 import { useAppData } from "../../context/AppDataContext";
 import { getGreeting, formatDateTime } from "../../utils/formatUtils";
 import { getTodayDate } from "../../utils/dateUtils";
-import { NavView, DailyTask } from "../../types";
+import { NavView, DailyTask, NowPlayingInfo } from "../../types";
 import { FrogIcon } from "../shared/FrogIcon";
 import { CategoryToggle } from "../shared/CategoryToggle";
 import { MarkdownText } from "../shared/MarkdownText";
 import { TaskDetailModal } from "../shared/TaskDetailModal";
+import { MusicWidget } from "../shared/MusicWidget";
 
 interface TodayViewProps {
   currentTime: Date;
   onNavigate: (view: NavView) => void;
   onStartTaskTimer?: (taskId: string, taskName: string) => void;
+  todayReviewCount?: number;
+  nowPlaying?: NowPlayingInfo | null;
+  onRefreshNowPlaying?: () => void;
 }
 
-export function TodayView({ currentTime, onNavigate, onStartTaskTimer }: TodayViewProps) {
+export function TodayView({ currentTime, onNavigate, onStartTaskTimer, todayReviewCount, nowPlaying, onRefreshNowPlaying }: TodayViewProps) {
   const { data, saveData } = useAppData();
   const { showConfirm } = useConfirmModal();
 
@@ -184,77 +188,67 @@ export function TodayView({ currentTime, onNavigate, onStartTaskTimer }: TodayVi
   return (
     <div className="view today-view">
       <header className="view-header today-header entrance-1">
-        <h1>Today</h1>
-        <div className="header-right">
-          <span className="greeting">{getGreeting(currentTime)}{data?.userName ? `, ${data.userName}` : ""}</span>
-          <span className="header-datetime">{formatDateTime(currentTime)}</span>
+        <div className="today-title-row">
+          <h1 className="greeting-title">{getGreeting(currentTime)}{data?.userName ? `, ${data.userName}` : ""}</h1>
+          <div className="header-datetime-group">
+            <span className="header-datetime">{formatDateTime(currentTime)}</span>
+            <a
+              href="https://calendar.google.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="calendar-link"
+              title="Open Google Calendar"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                <line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="3" y1="10" x2="21" y2="10" />
+              </svg>
+            </a>
+          </div>
+        </div>
+        <div className="header-actions">
+          {(todayReviewCount ?? 0) > 0 && (
+            <button
+              className="reviews-badge"
+              onClick={() => onNavigate("reviews")}
+              title="PR reviews today"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+              {todayReviewCount}
+            </button>
+          )}
+          <button
+            className={`atc-toggle ${isAtcToday ? "active" : ""}`}
+            onClick={toggleAtc}
+            title={isAtcToday ? "You're on ATC today" : "Mark as ATC day"}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z" />
+            </svg>
+            ATC
+          </button>
+          {frogEnabled && !hasFrog && (
+            <span
+              className={`frog-drag-source ${isDraggingFrog ? "dragging" : ""}`}
+              onMouseDown={handleFrogDragStart}
+              title="Drag onto a task to mark it as today's frog (most important task)"
+            >
+              <FrogIcon size={24} />
+            </span>
+          )}
         </div>
       </header>
 
-      <div className="today-nav entrance-2">
-        <button className="today-nav-btn" onClick={() => onNavigate("tasks")}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <path d="M9 11l3 3L22 4" />
-            <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" />
-          </svg>
-          <span>Tasks</span>
-        </button>
-        <button className="today-nav-btn" onClick={() => onNavigate("goals")}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <circle cx="12" cy="12" r="9" />
-            <circle cx="12" cy="12" r="5" />
-            <circle cx="12" cy="12" r="1" fill="currentColor" />
-          </svg>
-          <span>Goals</span>
-        </button>
-        <button className="today-nav-btn" onClick={() => onNavigate("notes")}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <path d="M14 3v4a1 1 0 001 1h4" />
-            <path d="M17 21H7a2 2 0 01-2-2V5a2 2 0 012-2h7l5 5v11a2 2 0 01-2 2z" />
-          </svg>
-          <span>Notes</span>
-        </button>
-        <button className="today-nav-btn" onClick={() => onNavigate("bragdoc")}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-          </svg>
-          <span>Brag Doc</span>
-        </button>
-      </div>
+      {data?.appleMusicEnabled !== false && (
+        <MusicWidget nowPlaying={nowPlaying ?? null} onRefresh={onRefreshNowPlaying} />
+      )}
 
-      <div className={`today-tasks-card entrance-4 ${todayTasks.length === 0 ? "empty" : ""}`}>
-        <div className="today-tasks-header">
-          <h2>Today's Tasks</h2>
-          <div className="header-actions">
-            <button
-              className={`atc-toggle ${isAtcToday ? "active" : ""}`}
-              onClick={toggleAtc}
-              title={isAtcToday ? "You're on ATC today" : "Mark as ATC day"}
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z" />
-              </svg>
-              ATC
-            </button>
-            {frogEnabled && !hasFrog && (
-              <span
-                className={`frog-drag-source ${isDraggingFrog ? "dragging" : ""}`}
-                onMouseDown={handleFrogDragStart}
-                title="Drag onto a task to mark it as today's frog (most important task)"
-              >
-                <FrogIcon size={32} />
-              </span>
-            )}
-            <button className="header-action" onClick={() => setShowTaskForm(true)}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <line x1="12" y1="5" x2="12" y2="19" />
-                <line x1="5" y1="12" x2="19" y2="12" />
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        {showTaskForm && (
+      {showTaskForm && (
           <div className="task-form">
             <input
               type="text"
@@ -345,6 +339,15 @@ export function TodayView({ currentTime, onNavigate, onStartTaskTimer }: TodayVi
           </div>
         ) : (
           <div className={`today-tasks ${draggedIndex !== null ? "dragging-active" : ""}`}>
+            {!showTaskForm && (
+              <button className="add-task-card" onClick={() => setShowTaskForm(true)}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                <span>Add task</span>
+              </button>
+            )}
             {todayTasks.map((task, index) => {
               const isEditing = editingTaskId === task.id;
               const isDragOver = dragOverIndex === index && draggedIndex !== index;
@@ -457,7 +460,6 @@ export function TodayView({ currentTime, onNavigate, onStartTaskTimer }: TodayVi
             })}
           </div>
         )}
-      </div>
 
       {selectedTask && (
         <TaskDetailModal

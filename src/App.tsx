@@ -33,9 +33,16 @@ import { TasksView } from "./components/views/TasksView";
 import { GoalsView } from "./components/views/GoalsView";
 import { NotesView } from "./components/views/NotesView";
 import { BragDocView } from "./components/views/BragDocView";
+import { CuriositiesView } from "./components/views/CuriositiesView";
+import { ReviewsView } from "./components/views/ReviewsView";
 import { SettingsView } from "./components/views/SettingsView";
-import { NavView, Todo, NowPlayingInfo } from "./types";
+import { CuriosityModal } from "./components/shared/CuriosityModal";
+import { ReviewModal } from "./components/shared/ReviewModal";
+import { TaskModal } from "./components/shared/TaskModal";
+import { BragDocModal } from "./components/shared/BragDocModal";
+import { NavView, Todo, NowPlayingInfo, Curiosity, Review, TaskCategory, DailyTask, BragDocEntry } from "./types";
 import { getTodayDate } from "./utils/dateUtils";
+import { parsePrLink } from "./hooks/useReviews";
 import { formatDateHeader } from "./utils/formatUtils";
 import { createScaffoldData } from "./utils/scaffoldData";
 import "./App.css";
@@ -44,11 +51,12 @@ interface AppContentProps {
   alertOverlay: { show: boolean; title: string; body: string; type: string } | null;
   onDismissAlert: () => void;
   nowPlaying: NowPlayingInfo | null;
+  onRefreshNowPlaying: () => void;
   onTimerExpired: (type: "focus" | "task", taskName?: string, timerId?: string) => void;
   onRegisterStopTimer: (stopFn: (timerId?: string) => void) => void;
 }
 
-function AppContent({ alertOverlay, onDismissAlert, nowPlaying, onTimerExpired, onRegisterStopTimer }: AppContentProps) {
+function AppContent({ alertOverlay, onDismissAlert, nowPlaying, onRefreshNowPlaying, onTimerExpired, onRegisterStopTimer }: AppContentProps) {
   const { data, saveData } = useAppData();
 
   const {
@@ -126,6 +134,10 @@ function AppContent({ alertOverlay, onDismissAlert, nowPlaying, onTimerExpired, 
   const [timerModalType, setTimerModalType] = useState<"focus" | "task">("focus");
   const [timerModalTaskId, setTimerModalTaskId] = useState<string | undefined>();
   const [timerModalTaskName, setTimerModalTaskName] = useState<string | undefined>();
+  const [showCuriosityModal, setShowCuriosityModal] = useState(false);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [showTaskModal, setShowTaskModal] = useState(false);
+  const [showBragDocModal, setShowBragDocModal] = useState(false);
 
   const openFocusTimer = useCallback(() => {
     setTimerModalType("focus");
@@ -146,6 +158,123 @@ function AppContent({ alertOverlay, onDismissAlert, nowPlaying, onTimerExpired, 
     startTimer(minutes, timerModalType, timerModalTaskId, timerName);
     setShowTimerModal(false);
   }, [startTimer, timerModalType, timerModalTaskId, timerModalTaskName]);
+
+  const getTodayReviewCount = useCallback(() => {
+    const today = getTodayDate();
+    return (data?.reviews || []).filter((r) => r.date === today && r.completed).length;
+  }, [data]);
+
+  const handleAddCuriosity = useCallback(async (title: string, description: string) => {
+    if (!data) return;
+    const newCuriosity: Curiosity = {
+      id: crypto.randomUUID(),
+      title,
+      description,
+      completed: false,
+      createdAt: new Date().toISOString(),
+    };
+    await saveData({
+      ...data,
+      curiosities: [newCuriosity, ...(data.curiosities || [])],
+    });
+    setShowCuriosityModal(false);
+  }, [data, saveData]);
+
+  const handleAddReview = useCallback(async (prLink: string) => {
+    if (!data) return;
+    const { title, source } = parsePrLink(prLink);
+    const newReview: Review = {
+      id: crypto.randomUUID(),
+      prLink,
+      title,
+      source,
+      completed: true,
+      completedAt: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      date: getTodayDate(),
+    };
+    await saveData({
+      ...data,
+      reviews: [newReview, ...(data.reviews || [])],
+    });
+    setShowReviewModal(false);
+  }, [data, saveData]);
+
+  const getFrogForToday = useCallback(() => {
+    const today = getTodayDate();
+    return (data?.dailyTasks || []).find((t) => t.date === today && t.isFrog);
+  }, [data]);
+
+  const handleAddTask = useCallback(async (task: {
+    text: string;
+    description: string;
+    goalId: string | null;
+    category: TaskCategory;
+    isFrog: boolean;
+  }) => {
+    if (!data) return;
+    const today = getTodayDate();
+    const todayTasks = (data.dailyTasks || []).filter((t) => t.date === today);
+    const maxOrder = todayTasks.length > 0 ? Math.max(...todayTasks.map((t) => t.order ?? 0)) : 0;
+
+    const newTask: DailyTask = {
+      id: crypto.randomUUID(),
+      text: task.text,
+      description: task.description,
+      goalId: task.goalId ?? undefined,
+      category: task.category,
+      completed: false,
+      date: today,
+      order: maxOrder + 1,
+      isFrog: task.isFrog,
+    };
+
+    let updatedTasks = [...(data.dailyTasks || []), newTask];
+    if (task.isFrog) {
+      updatedTasks = updatedTasks.map((t) =>
+        t.date === today && t.id !== newTask.id ? { ...t, isFrog: false } : t
+      );
+    }
+
+    await saveData({ ...data, dailyTasks: updatedTasks });
+    setShowTaskModal(false);
+  }, [data, saveData]);
+
+  const handleAddBragDoc = useCallback(async (entry: {
+    title: string;
+    text: string;
+    links: string[];
+    pendingImages: string[];
+  }) => {
+    if (!data) return;
+    const imageFilenames: string[] = [];
+    for (const dataUrl of entry.pendingImages) {
+      const base64Data = dataUrl.split(",")[1];
+      const mimeMatch = dataUrl.match(/data:image\/(\w+);/);
+      const extension = mimeMatch ? mimeMatch[1] : "png";
+      try {
+        const filename = await invoke<string>("save_image", { base64Data, extension });
+        imageFilenames.push(filename);
+      } catch (err) {
+        console.error("Failed to save image:", err);
+      }
+    }
+
+    const newEntry: BragDocEntry = {
+      id: crypto.randomUUID(),
+      title: entry.title,
+      text: entry.text,
+      links: entry.links.length > 0 ? entry.links : undefined,
+      images: imageFilenames.length > 0 ? imageFilenames : undefined,
+      timestamp: new Date().toISOString(),
+    };
+
+    await saveData({
+      ...data,
+      bragDocs: [newEntry, ...(data.bragDocs || [])],
+    });
+    setShowBragDocModal(false);
+  }, [data, saveData]);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
@@ -308,6 +437,10 @@ function AppContent({ alertOverlay, onDismissAlert, nowPlaying, onTimerExpired, 
         onOpenFeatureRequests={() => setShowFeatureRequests(true)}
         onOpenBugReports={() => setShowBugReports(true)}
         onStartFocusTimer={openFocusTimer}
+        onAddCuriosity={() => setShowCuriosityModal(true)}
+        onAddReview={() => setShowReviewModal(true)}
+        onAddTask={() => setShowTaskModal(true)}
+        onAddBragDoc={() => setShowBragDocModal(true)}
       />
 
       {getFocusTimers().map((timer) => {
@@ -328,11 +461,11 @@ function AppContent({ alertOverlay, onDismissAlert, nowPlaying, onTimerExpired, 
         );
       })}
 
-      {data.appleMusicEnabled !== false && <NowPlayingBar nowPlaying={nowPlaying} />}
+      {data.appleMusicEnabled !== false && activeView !== "today" && <NowPlayingBar nowPlaying={nowPlaying} />}
 
       <main className="main-content">
         {activeView === "today" && (
-          <TodayView currentTime={currentTime} onNavigate={setActiveView} onStartTaskTimer={openTaskTimer} />
+          <TodayView currentTime={currentTime} onNavigate={setActiveView} onStartTaskTimer={openTaskTimer} todayReviewCount={getTodayReviewCount()} nowPlaying={nowPlaying} onRefreshNowPlaying={onRefreshNowPlaying} />
         )}
 
         {activeView === "tasks" && (
@@ -352,6 +485,10 @@ function AppContent({ alertOverlay, onDismissAlert, nowPlaying, onTimerExpired, 
         )}
 
         {activeView === "bragdoc" && <BragDocView onOpenLightbox={openLightbox} />}
+
+        {activeView === "curiosities" && <CuriositiesView />}
+
+        {activeView === "reviews" && <ReviewsView />}
 
         {activeView === "settings" && <SettingsView />}
       </main>
@@ -440,6 +577,31 @@ function AppContent({ alertOverlay, onDismissAlert, nowPlaying, onTimerExpired, 
         />
       )}
 
+      <CuriosityModal
+        show={showCuriosityModal}
+        onClose={() => setShowCuriosityModal(false)}
+        onSave={handleAddCuriosity}
+      />
+
+      <ReviewModal
+        show={showReviewModal}
+        onClose={() => setShowReviewModal(false)}
+        onSave={handleAddReview}
+      />
+
+      <TaskModal
+        show={showTaskModal}
+        onClose={() => setShowTaskModal(false)}
+        onSave={handleAddTask}
+        hasFrog={!!getFrogForToday()}
+      />
+
+      <BragDocModal
+        show={showBragDocModal}
+        onClose={() => setShowBragDocModal(false)}
+        onSave={handleAddBragDoc}
+      />
+
       {activeTimers.filter((t) => t.type === "task").map((timer) => {
         const state = timerStates.get(timer.id);
         if (!state || state.timeRemaining <= 0) return null;
@@ -481,6 +643,10 @@ function App() {
     return () => {
       unlisten.then((fn) => fn());
     };
+  }, []);
+
+  const handleRefreshNowPlaying = useCallback(() => {
+    invoke<NowPlayingInfo>("get_now_playing").then(setNowPlaying);
   }, []);
 
   const handleAlertTriggered = useCallback(
@@ -544,6 +710,7 @@ function App() {
           alertOverlay={alertOverlay}
           onDismissAlert={handleDismissAlert}
           nowPlaying={nowPlaying}
+          onRefreshNowPlaying={handleRefreshNowPlaying}
           onTimerExpired={handleTimerExpired}
           onRegisterStopTimer={handleRegisterStopTimer}
         />

@@ -15,6 +15,10 @@ interface NavigationProps {
   onOpenFeatureRequests?: () => void;
   onOpenBugReports?: () => void;
   onStartFocusTimer?: () => void;
+  onAddCuriosity?: () => void;
+  onAddReview?: () => void;
+  onAddTask?: () => void;
+  onAddBragDoc?: () => void;
 }
 
 const Navigation: React.FC<NavigationProps> = ({
@@ -31,6 +35,10 @@ const Navigation: React.FC<NavigationProps> = ({
   onOpenFeatureRequests,
   onOpenBugReports,
   onStartFocusTimer,
+  onAddCuriosity,
+  onAddReview,
+  onAddTask,
+  onAddBragDoc,
 }) => {
   return (
     <TabNav
@@ -47,6 +55,10 @@ const Navigation: React.FC<NavigationProps> = ({
       onOpenFeatureRequests={onOpenFeatureRequests}
       onOpenBugReports={onOpenBugReports}
       onStartFocusTimer={onStartFocusTimer}
+      onAddCuriosity={onAddCuriosity}
+      onAddReview={onAddReview}
+      onAddTask={onAddTask}
+      onAddBragDoc={onAddBragDoc}
     />
   );
 };
