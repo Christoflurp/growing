@@ -12,9 +12,12 @@ A personal Mac menu bar app for tracking growth goals and daily accountability. 
 - **Drag & Drop** - Reorder tasks by dragging to prioritize your day
 - **Backlog** - Unscheduled task list for future work, schedule items when ready
 - **Goals Tracking** - Organize goals by period (ongoing/quarterly/monthly) with progress visualization
+- **Curiosities** - Track things you want to learn with completion status
+- **Reviews** - Log PR reviews with auto-parsed GitHub links and daily count
 - **Quick Notes** - Capture thoughts instantly with Cmd+Enter
 - **Brag Doc** - Document accomplishments with image attachments and links
-- **Apple Music** - Now playing bar shows current track (toggleable in Settings)
+- **Quick Add** - Dropdown menu (+) to add tasks, notes, reviews, or curiosities from any page
+- **Apple Music** - Rich widget with artwork, progress bar, and transport controls
 - **Stand/Sit Reminders** - Configurable alerts to alternate between sitting and standing
 - **Scheduled Notifications** - Daily and weekly reminder notifications
 - **Themes** - Four distinct themes (Editorial, Obsidian, Paper, Grove) plus dark mode
