@@ -14,8 +14,8 @@ function formatTime(seconds: number): string {
 }
 
 export function MusicWidget({ nowPlaying, onRefresh }: MusicWidgetProps) {
-  const [currentPosition, setCurrentPosition] = useState<number>(0);
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentPosition, setCurrentPosition] = useState<number>(nowPlaying?.position ?? 0);
+  const [isPlaying, setIsPlaying] = useState(nowPlaying?.is_playing ?? false);
   const lastUpdateRef = useRef<number>(Date.now());
 
   useEffect(() => {

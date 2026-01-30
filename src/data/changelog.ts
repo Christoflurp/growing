@@ -5,7 +5,7 @@ export interface ChangelogEntry {
   changes: string[];
 }
 
-export const APP_VERSION = "1.2.0";
+export const APP_VERSION = "1.2.1";
 
 export const changelog: ChangelogEntry[] = [
   {
@@ -13,6 +13,14 @@ export const changelog: ChangelogEntry[] = [
     date: null,
     title: "Upcoming Changes",
     changes: [],
+  },
+  {
+    version: "1.2.1",
+    date: "2026-01-30",
+    title: "Music Widget Fix",
+    changes: [
+      "Fixed music progress bar resetting to zero when navigating between pages",
+    ],
   },
   {
     version: "1.2.0",
