@@ -87,6 +87,10 @@ export function TaskModal({ show, onClose, onSave, hasFrog }: TaskModalProps) {
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           className="modal-textarea"
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && e.metaKey && text.trim()) handleSave();
+            if (e.key === "Escape") handleClose();
+          }}
         />
         <select
           value={goalId || ""}

@@ -66,6 +66,14 @@ export function CuriositiesView() {
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             className="curiosity-description-input"
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && e.metaKey && title.trim()) addCuriosity();
+              if (e.key === "Escape") {
+                setShowForm(false);
+                setTitle("");
+                setDescription("");
+              }
+            }}
           />
           <div className="form-actions">
             <button className="btn-save" onClick={addCuriosity} disabled={!title.trim()}>
@@ -121,6 +129,10 @@ export function CuriositiesView() {
                       onChange={(e) => setEditDescription(e.target.value)}
                       className="curiosity-description-input"
                       placeholder="Description (optional)"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && e.metaKey && editTitle.trim()) updateCuriosity();
+                        if (e.key === "Escape") cancelEditing();
+                      }}
                     />
                     <div className="form-actions">
                       <button className="btn-save" onClick={updateCuriosity} disabled={!editTitle.trim()}>

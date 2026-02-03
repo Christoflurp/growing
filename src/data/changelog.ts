@@ -15,6 +15,7 @@ export const changelog: ChangelogEntry[] = [
     changes: [
       "Favourite button in Apple Music widget - toggle track favourite status without leaving the app",
       "Improved album artwork reliability with retry mechanism for both local and iTunes API fetching",
+      "Cmd+Enter to submit forms from any text field - consistent keyboard shortcut across all modals and inline forms",
     ],
   },
   {

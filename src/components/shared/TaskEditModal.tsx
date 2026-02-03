@@ -64,6 +64,10 @@ export function TaskEditModal({
             value={description}
             onChange={(e) => onDescriptionChange(e.target.value)}
             className="task-description-input"
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && e.metaKey && text.trim()) onSave();
+              if (e.key === "Escape") onClose();
+            }}
           />
           <select
             value={goalId || ""}

@@ -103,6 +103,10 @@ export function BragDocModal({ show, onClose, onSave }: BragDocModalProps) {
           value={text}
           onChange={(e) => setText(e.target.value)}
           className="modal-textarea bragdoc-textarea"
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && e.metaKey && title.trim() && text.trim()) handleSave();
+            if (e.key === "Escape") handleClose();
+          }}
         />
         <input
           type="text"

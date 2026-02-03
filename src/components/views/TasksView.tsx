@@ -357,6 +357,10 @@ export function TasksView({ selectedDate, onOpenDatePicker, onOpenSchedulePicker
                       value={editTaskDescription}
                       onChange={(e) => setEditTaskDescription(e.target.value)}
                       className="task-description-input"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && e.metaKey && editTaskText.trim()) updateTask();
+                        if (e.key === "Escape") cancelEditingTask();
+                      }}
                     />
                     <select
                       value={editTaskGoalId || ""}
@@ -541,6 +545,15 @@ export function TasksView({ selectedDate, onOpenDatePicker, onOpenSchedulePicker
                 value={backlogDescription}
                 onChange={(e) => setBacklogDescription(e.target.value)}
                 className="task-description-input"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && e.metaKey && backlogText.trim()) addTodo();
+                  if (e.key === "Escape") {
+                    setShowBacklogForm(false);
+                    setBacklogText("");
+                    setBacklogDescription("");
+                    setBacklogGoalId(null);
+                  }
+                }}
               />
               <select
                 value={backlogGoalId || ""}
@@ -602,6 +615,10 @@ export function TasksView({ selectedDate, onOpenDatePicker, onOpenSchedulePicker
                           value={editTodoDescription}
                           onChange={(e) => setEditTodoDescription(e.target.value)}
                           className="task-description-input"
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" && e.metaKey && editTodoText.trim()) updateTodo();
+                            if (e.key === "Escape") cancelEditingTodo();
+                          }}
                         />
                         <select
                           value={editTodoGoalId || ""}

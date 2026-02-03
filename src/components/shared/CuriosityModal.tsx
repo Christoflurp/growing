@@ -61,6 +61,10 @@ export function CuriosityModal({ show, onClose, onSave }: CuriosityModalProps) {
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           className="modal-textarea"
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && e.metaKey && title.trim()) handleSave();
+            if (e.key === "Escape") handleClose();
+          }}
         />
         <div className="modal-actions">
           <button className="btn-save" onClick={handleSave} disabled={!title.trim()}>

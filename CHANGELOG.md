@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Click to toggle favourite status in Apple Music
   - Filled pink heart when track is favourited
   - No need to switch to Apple Music app
+- Cmd+Enter to submit forms from any text field
+  - Works consistently across all modals and inline forms
+  - Submit tasks, curiosities, brag docs, and backlog items from description fields
 
 ### Fixed
 
