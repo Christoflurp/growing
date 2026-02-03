@@ -5782,6 +5782,48 @@ select:disabled {
   height: 16px;
 }
 
+.music-widget-title-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.music-widget-title-row .music-widget-title {
+  margin: 0;
+}
+
+.music-love-btn {
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  transition: var(--transition);
+  flex-shrink: 0;
+}
+
+.music-love-btn:hover {
+  color: var(--text-primary);
+}
+
+.music-love-btn.loved {
+  color: #ff2d55;
+}
+
+.music-love-btn.loved:hover {
+  color: #ff5a7a;
+}
+
+.music-love-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
 .music-widget-artist.clickable {
   cursor: pointer;
   transition: var(--transition);

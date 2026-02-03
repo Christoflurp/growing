@@ -28,6 +28,51 @@ pub struct NowPlayingInfo {
     pub duration: Option<f64>,
     pub position: Option<f64>,
     pub artwork: Option<String>,
+    pub is_loved: Option<bool>,
+}
+
+#[cfg(target_os = "macos")]
+fn fetch_track_artwork() -> Option<String> {
+    let script = r#"
+        tell application "Music"
+            if player state is stopped then
+                return ""
+            end if
+            try
+                if (count of artworks of current track) > 0 then
+                    set rawData to raw data of artwork 1 of current track
+                    set tempFile to (path to temporary items folder as text) & "growing_artwork.tmp"
+                    set fileRef to open for access file tempFile with write permission
+                    set eof fileRef to 0
+                    write rawData to fileRef
+                    close access fileRef
+                    set base64Result to do shell script "base64 -i " & quoted form of POSIX path of tempFile
+                    do shell script "rm -f " & quoted form of POSIX path of tempFile
+                    return base64Result
+                end if
+            end try
+            return ""
+        end tell
+    "#;
+
+    for attempt in 0..3 {
+        if attempt > 0 {
+            thread::sleep(Duration::from_millis(150));
+        }
+
+        if let Ok(output) = Command::new("osascript")
+            .arg("-e")
+            .arg(script)
+            .output()
+        {
+            let result = String::from_utf8_lossy(&output.stdout).trim().to_string();
+            if !result.is_empty() {
+                return Some(result.replace("\n", "").replace(" ", ""));
+            }
+        }
+    }
+
+    None
 }
 
 #[cfg(target_os = "macos")]
@@ -54,33 +99,13 @@ fn query_apple_music() -> NowPlayingInfo {
             on error
                 set trackYear to 0
             end try
-            set artworkData to ""
             try
-                if (count of artworks of current track) > 0 then
-                    set rawData to raw data of artwork 1 of current track
-                    set artworkData to my encodeBase64(rawData)
-                end if
-            end try
-            return (isPlaying as string) & "|||" & trackName & "|||" & trackArtist & "|||" & trackAlbum & "|||" & trackYear & "|||" & trackDuration & "|||" & trackPosition & "|||" & artworkData
-        end tell
-
-        on encodeBase64(theData)
-            set tempFile to (path to temporary items folder as text) & "growing_artwork.tmp"
-            try
-                set fileRef to open for access file tempFile with write permission
-                set eof fileRef to 0
-                write theData to fileRef
-                close access fileRef
-                set base64Result to do shell script "base64 -i " & quoted form of POSIX path of tempFile
-                do shell script "rm -f " & quoted form of POSIX path of tempFile
-                return base64Result
+                set trackLoved to favorited of current track
             on error
-                try
-                    close access file tempFile
-                end try
-                return ""
+                set trackLoved to false
             end try
-        end encodeBase64
+            return (isPlaying as string) & "|||" & trackName & "|||" & trackArtist & "|||" & trackAlbum & "|||" & trackYear & "|||" & trackDuration & "|||" & trackPosition & "|||" & (trackLoved as string)
+        end tell
     "#;
 
     let output = Command::new("osascript")
@@ -97,18 +122,17 @@ fn query_apple_music() -> NowPlayingInfo {
             let parts: Vec<&str> = result.split("|||").collect();
             if parts.len() >= 7 {
                 let is_playing = parts[0] == "true";
-                let local_artwork = if parts.len() > 7 && !parts[7].is_empty() {
-                    Some(parts[7].replace("\n", "").replace(" ", ""))
-                } else {
-                    None
-                };
-
                 let artist = parts[2].to_string();
                 let album = parts[3].to_string();
 
-                let artwork = local_artwork.or_else(|| {
-                    fetch_itunes_artwork(&artist, &album)
-                });
+                let artwork = fetch_track_artwork()
+                    .or_else(|| fetch_itunes_artwork(&artist, &album));
+
+                let is_loved = if parts.len() > 7 {
+                    Some(parts[7] == "true")
+                } else {
+                    None
+                };
 
                 NowPlayingInfo {
                     is_playing,
@@ -119,6 +143,7 @@ fn query_apple_music() -> NowPlayingInfo {
                     duration: parts[5].parse().ok(),
                     position: parts[6].parse().ok(),
                     artwork,
+                    is_loved,
                 }
             } else {
                 NowPlayingInfo::default()
@@ -134,14 +159,14 @@ fn fetch_itunes_artwork(artist: &str, album: &str) -> Option<String> {
     use std::sync::Mutex;
 
     lazy_static::lazy_static! {
-        static ref ARTWORK_CACHE: Mutex<HashMap<String, Option<String>>> = Mutex::new(HashMap::new());
+        static ref ARTWORK_CACHE: Mutex<HashMap<String, String>> = Mutex::new(HashMap::new());
     }
 
     let cache_key = format!("{}|{}", artist, album);
 
     if let Ok(cache) = ARTWORK_CACHE.lock() {
         if let Some(cached) = cache.get(&cache_key) {
-            return cached.clone();
+            return Some(cached.clone());
         }
     }
 
@@ -154,39 +179,56 @@ fn fetch_itunes_artwork(artist: &str, album: &str) -> Option<String> {
         search_term
     );
 
-    let output = Command::new("curl")
-        .arg("-s")
-        .arg("-m")
-        .arg("3")
-        .arg(&url)
-        .output()
-        .ok()?;
+    for attempt in 0..3 {
+        if attempt > 0 {
+            thread::sleep(Duration::from_millis(200));
+        }
 
-    let json_str = String::from_utf8_lossy(&output.stdout);
+        let output = match Command::new("curl")
+            .arg("-s")
+            .arg("-m")
+            .arg("5")
+            .arg(&url)
+            .output()
+        {
+            Ok(o) => o,
+            Err(_) => continue,
+        };
 
-    let artwork_url = extract_artwork_url(&json_str, album)?;
-    let high_res_url = artwork_url.replace("100x100bb", "300x300bb");
+        let json_str = String::from_utf8_lossy(&output.stdout);
+        let artwork_url = match extract_artwork_url(&json_str, album) {
+            Some(u) => u,
+            None => continue,
+        };
 
-    let img_output = Command::new("curl")
-        .arg("-s")
-        .arg("-m")
-        .arg("3")
-        .arg(&high_res_url)
-        .output()
-        .ok()?;
+        let high_res_url = artwork_url.replace("100x100bb", "300x300bb");
 
-    if img_output.stdout.is_empty() {
-        return None;
+        let img_output = match Command::new("curl")
+            .arg("-s")
+            .arg("-m")
+            .arg("5")
+            .arg(&high_res_url)
+            .output()
+        {
+            Ok(o) => o,
+            Err(_) => continue,
+        };
+
+        if img_output.stdout.is_empty() {
+            continue;
+        }
+
+        use base64::{Engine as _, engine::general_purpose};
+        let base64_img = general_purpose::STANDARD.encode(&img_output.stdout);
+
+        if let Ok(mut cache) = ARTWORK_CACHE.lock() {
+            cache.insert(cache_key, base64_img.clone());
+        }
+
+        return Some(base64_img);
     }
 
-    use base64::{Engine as _, engine::general_purpose};
-    let base64_img = general_purpose::STANDARD.encode(&img_output.stdout);
-
-    if let Ok(mut cache) = ARTWORK_CACHE.lock() {
-        cache.insert(cache_key, Some(base64_img.clone()));
-    }
-
-    Some(base64_img)
+    None
 }
 
 #[cfg(target_os = "macos")]
@@ -270,6 +312,30 @@ fn previous_track() {
             .arg(script)
             .output();
     }
+}
+
+#[tauri::command]
+fn toggle_love_track() -> bool {
+    #[cfg(target_os = "macos")]
+    {
+        let script = r#"
+            tell application "Music"
+                set currentFavorited to favorited of current track
+                set favorited of current track to not currentFavorited
+                return not currentFavorited
+            end tell
+        "#;
+        let output = Command::new("osascript")
+            .arg("-e")
+            .arg(script)
+            .output();
+
+        if let Ok(out) = output {
+            let result = String::from_utf8_lossy(&out.stdout).trim().to_string();
+            return result == "true";
+        }
+    }
+    false
 }
 
 #[tauri::command]
@@ -1284,6 +1350,7 @@ pub fn run() {
             play_pause_music,
             next_track,
             previous_track,
+            toggle_love_track,
             open_artist_in_music,
             open_album_in_music,
         ])

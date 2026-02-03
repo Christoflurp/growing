@@ -148,4 +148,5 @@ export interface NowPlayingInfo {
   duration?: number;
   position?: number;
   artwork?: string;
+  is_loved?: boolean;
 }

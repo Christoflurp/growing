@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Favourite button in Apple Music widget
+  - Heart icon appears inline after track title
+  - Click to toggle favourite status in Apple Music
+  - Filled pink heart when track is favourited
+  - No need to switch to Apple Music app
+
+### Fixed
+
+- Improved album artwork reliability
+  - Added retry mechanism (up to 3 attempts) for local artwork extraction
+  - Added retry mechanism for iTunes API fallback
+  - Increased curl timeout from 3s to 5s
+  - No longer caches failed artwork fetches, allowing retries on next query
+
 ## [1.2.1] - 2026-01-30
 
 ### Fixed

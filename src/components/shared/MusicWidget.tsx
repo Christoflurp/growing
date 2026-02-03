@@ -7,6 +7,21 @@ interface MusicWidgetProps {
   onRefresh?: () => void;
 }
 
+function HeartIcon({ filled }: { filled: boolean }) {
+  if (filled) {
+    return (
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+      </svg>
+    );
+  }
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+    </svg>
+  );
+}
+
 function formatTime(seconds: number): string {
   const mins = Math.floor(seconds / 60);
   const secs = Math.floor(seconds % 60);
@@ -16,6 +31,7 @@ function formatTime(seconds: number): string {
 export function MusicWidget({ nowPlaying, onRefresh }: MusicWidgetProps) {
   const [currentPosition, setCurrentPosition] = useState<number>(nowPlaying?.position ?? 0);
   const [isPlaying, setIsPlaying] = useState(nowPlaying?.is_playing ?? false);
+  const [isLoved, setIsLoved] = useState(nowPlaying?.is_loved ?? false);
   const lastUpdateRef = useRef<number>(Date.now());
 
   useEffect(() => {
@@ -24,7 +40,8 @@ export function MusicWidget({ nowPlaying, onRefresh }: MusicWidgetProps) {
       lastUpdateRef.current = Date.now();
     }
     setIsPlaying(nowPlaying?.is_playing ?? false);
-  }, [nowPlaying?.position, nowPlaying?.title, nowPlaying?.is_playing]);
+    setIsLoved(nowPlaying?.is_loved ?? false);
+  }, [nowPlaying?.position, nowPlaying?.title, nowPlaying?.is_playing, nowPlaying?.is_loved]);
 
   useEffect(() => {
     if (!isPlaying || nowPlaying?.duration === undefined) {
@@ -59,6 +76,11 @@ export function MusicWidget({ nowPlaying, onRefresh }: MusicWidgetProps) {
   const handleNext = async () => {
     await invoke("next_track");
     setTimeout(() => onRefresh?.(), 500);
+  };
+
+  const handleToggleLove = async () => {
+    const newLoved = await invoke<boolean>("toggle_love_track");
+    setIsLoved(newLoved);
   };
 
   const handleOpenMusic = () => {
@@ -116,7 +138,12 @@ export function MusicWidget({ nowPlaying, onRefresh }: MusicWidgetProps) {
         )}
       </div>
       <div className="music-widget-info">
-        <p className="music-widget-title" title={title}>{title}</p>
+        <div className="music-widget-title-row">
+          <p className="music-widget-title" title={title}>{title}</p>
+          <button className={`music-love-btn ${isLoved ? "loved" : ""}`} onClick={handleToggleLove} title={isLoved ? "Remove from Favourites" : "Add to Favourites"}>
+            <HeartIcon filled={isLoved} />
+          </button>
+        </div>
         <p className="music-widget-artist clickable" title={`Open "${artist}" in Apple Music`} onClick={handleOpenArtist}>{artist}</p>
         {album && <p className="music-widget-album clickable" title={`Open "${album}" in Apple Music`} onClick={handleOpenAlbum}>{album}</p>}
         <div className="music-widget-progress">

@@ -12,7 +12,10 @@ export const changelog: ChangelogEntry[] = [
     version: "Unreleased",
     date: null,
     title: "Upcoming Changes",
-    changes: [],
+    changes: [
+      "Favourite button in Apple Music widget - toggle track favourite status without leaving the app",
+      "Improved album artwork reliability with retry mechanism for both local and iTunes API fetching",
+    ],
   },
   {
     version: "1.2.1",
