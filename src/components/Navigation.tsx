@@ -19,6 +19,7 @@ interface NavigationProps {
   onAddReview?: () => void;
   onAddTask?: () => void;
   onAddBragDoc?: () => void;
+  onAddOneOnOneNote?: () => void;
 }
 
 const Navigation: React.FC<NavigationProps> = ({
@@ -39,6 +40,7 @@ const Navigation: React.FC<NavigationProps> = ({
   onAddReview,
   onAddTask,
   onAddBragDoc,
+  onAddOneOnOneNote,
 }) => {
   return (
     <TabNav
@@ -59,6 +61,7 @@ const Navigation: React.FC<NavigationProps> = ({
       onAddReview={onAddReview}
       onAddTask={onAddTask}
       onAddBragDoc={onAddBragDoc}
+      onAddOneOnOneNote={onAddOneOnOneNote}
     />
   );
 };

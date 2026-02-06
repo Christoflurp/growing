@@ -11,6 +11,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- 1-1 meeting tracker for preparing and archiving manager meeting notes
+  - Configure person name, day of week, and weekly/biweekly cadence
+  - Add notes classified as Topic, Action, or Feedback
+  - Complete sessions to archive pending notes into dated history
+  - Schedule action items as daily tasks via calendar picker
+  - Past sessions archive with reverse-chronological browsing
+- 1-1 day badge on Today dashboard with pending note count
+  - Click to navigate directly to 1-1s view
+- Quick add "1-1 Note" from the + dropdown menu on any page
+  - Opens modal with type selector if config exists, navigates to setup if not
 - Favourite button in Apple Music widget
   - Heart icon appears inline after track title
   - Click to toggle favourite status in Apple Music

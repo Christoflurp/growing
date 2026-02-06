@@ -706,6 +706,47 @@ fn default_github_source() -> String {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
+pub struct OneOnOneConfig {
+    pub id: String,
+    #[serde(rename = "personName")]
+    pub person_name: String,
+    #[serde(rename = "dayOfWeek")]
+    pub day_of_week: String,
+    #[serde(default)]
+    pub cadence: String,
+    #[serde(default, rename = "startDate")]
+    pub start_date: String,
+    #[serde(default, rename = "createdAt")]
+    pub created_at: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+pub struct OneOnOneNote {
+    pub id: String,
+    #[serde(rename = "configId")]
+    pub config_id: String,
+    pub text: String,
+    #[serde(rename = "noteType")]
+    pub note_type: String,
+    #[serde(default, rename = "sessionId", skip_serializing_if = "Option::is_none")]
+    pub session_id: Option<String>,
+    #[serde(default, rename = "scheduledAsTaskId", skip_serializing_if = "Option::is_none")]
+    pub scheduled_as_task_id: Option<String>,
+    #[serde(default, rename = "createdAt")]
+    pub created_at: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+pub struct OneOnOneSession {
+    pub id: String,
+    #[serde(rename = "configId")]
+    pub config_id: String,
+    pub date: String,
+    #[serde(rename = "completedAt")]
+    pub completed_at: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct AppData {
     pub sections: Vec<Section>,
     pub notifications: NotificationSettings,
@@ -725,6 +766,12 @@ pub struct AppData {
     pub curiosities: Vec<Curiosity>,
     #[serde(default)]
     pub reviews: Vec<Review>,
+    #[serde(default, rename = "oneOnOneConfigs", skip_serializing_if = "Vec::is_empty")]
+    pub one_on_one_configs: Vec<OneOnOneConfig>,
+    #[serde(default, rename = "oneOnOneNotes", skip_serializing_if = "Vec::is_empty")]
+    pub one_on_one_notes: Vec<OneOnOneNote>,
+    #[serde(default, rename = "oneOnOneSessions", skip_serializing_if = "Vec::is_empty")]
+    pub one_on_one_sessions: Vec<OneOnOneSession>,
     #[serde(default = "default_theme")]
     pub theme: String,
     #[serde(default, rename = "darkMode")]

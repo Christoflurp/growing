@@ -104,6 +104,9 @@ export interface AppData {
   bugReports?: BugReport[];
   curiosities?: Curiosity[];
   reviews?: Review[];
+  oneOnOneConfigs?: OneOnOneConfig[];
+  oneOnOneNotes?: OneOnOneNote[];
+  oneOnOneSessions?: OneOnOneSession[];
   theme?: string;
   darkMode?: boolean;
   userName?: string;
@@ -115,7 +118,7 @@ export interface AppData {
   atcDays?: string[];
 }
 
-export type NavView = "today" | "tasks" | "goals" | "notes" | "bragdoc" | "curiosities" | "reviews" | "settings";
+export type NavView = "today" | "tasks" | "goals" | "notes" | "bragdoc" | "curiosities" | "reviews" | "one-on-ones" | "settings";
 
 export interface Curiosity {
   id: string;
@@ -139,6 +142,35 @@ export interface Review {
   date: string;
   isReReview?: boolean;
   notes?: string;
+}
+
+export type OneOnOneNoteType = "topic" | "action" | "feedback";
+export type OneOnOneCadence = "weekly" | "biweekly";
+
+export interface OneOnOneConfig {
+  id: string;
+  personName: string;
+  dayOfWeek: string;
+  cadence: OneOnOneCadence;
+  startDate: string;
+  createdAt: string;
+}
+
+export interface OneOnOneNote {
+  id: string;
+  configId: string;
+  text: string;
+  noteType: OneOnOneNoteType;
+  sessionId?: string;
+  scheduledAsTaskId?: string;
+  createdAt: string;
+}
+
+export interface OneOnOneSession {
+  id: string;
+  configId: string;
+  date: string;
+  completedAt: string;
 }
 
 export interface NowPlayingInfo {

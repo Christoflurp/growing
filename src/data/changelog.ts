@@ -17,8 +17,16 @@ export const changelog: ChangelogEntry[] = [
   {
     version: "1.3.0",
     date: "2026-02-06",
-    title: "Reviews, Backlog & Curiosity Widget",
+    title: "1-1s, Reviews & Curiosity Widget",
     changes: [
+      "1-1s view for tracking manager meeting notes and sessions",
+      "Configure your 1-1: person name, day of week, weekly or biweekly cadence",
+      "Add notes with type classification: Topic, Action, or Feedback",
+      "Complete sessions to archive pending notes into dated history",
+      "Schedule action items as daily tasks via the calendar picker",
+      "1-1 day badge on Today dashboard with pending note count",
+      "Quick add 1-1 Note from the + dropdown menu on any page",
+      "Past sessions archive with reverse-chronological browsing",
       "Favourite button in Apple Music widget - toggle track favourite status without leaving the app",
       "Improved album artwork reliability with retry mechanism for both local and iTunes API fetching",
       "Cmd+Enter to submit forms from any text field - consistent keyboard shortcut across all modals and inline forms",

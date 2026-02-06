@@ -40,7 +40,11 @@ import { CuriosityModal } from "./components/shared/CuriosityModal";
 import { ReviewModal } from "./components/shared/ReviewModal";
 import { TaskModal } from "./components/shared/TaskModal";
 import { BragDocModal } from "./components/shared/BragDocModal";
-import { NavView, Todo, NowPlayingInfo, Curiosity, Review, TaskCategory, DailyTask, BragDocEntry } from "./types";
+import { OneOnOneNoteModal } from "./components/shared/OneOnOneNoteModal";
+import { OneOnOnesView } from "./components/views/OneOnOnesView";
+import { NavView, Todo, NowPlayingInfo, Curiosity, Review, TaskCategory, DailyTask, BragDocEntry, OneOnOneNoteType } from "./types";
+import { useOneOnOnes } from "./hooks/useOneOnOnes";
+import { isOneOnOneDay } from "./utils/oneOnOneUtils";
 import { getTodayDate } from "./utils/dateUtils";
 import { parsePrLink } from "./hooks/useReviews";
 import { formatDateHeader } from "./utils/formatUtils";
@@ -138,6 +142,10 @@ function AppContent({ alertOverlay, onDismissAlert, nowPlaying, onRefreshNowPlay
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [showBragDocModal, setShowBragDocModal] = useState(false);
+  const [showOneOnOneNoteModal, setShowOneOnOneNoteModal] = useState(false);
+  const [pendingScheduleOneOnOneNote, setPendingScheduleOneOnOneNote] = useState<string | null>(null);
+
+  const { getConfig: getOneOnOneConfig, addNote: addOneOnOneNote, getPendingNotes: getOneOnOnePendingNotes, scheduleNoteAsTask: scheduleOneOnOneNoteAsTask } = useOneOnOnes();
 
   const openFocusTimer = useCallback(() => {
     setTimerModalType("focus");
@@ -286,6 +294,40 @@ function AppContent({ alertOverlay, onDismissAlert, nowPlaying, onRefreshNowPlay
     setShowBragDocModal(false);
   }, [data, saveData]);
 
+  const handleAddOneOnOneNote = useCallback(async (text: string, noteType: OneOnOneNoteType) => {
+    await addOneOnOneNote(text, noteType);
+    setShowOneOnOneNoteModal(false);
+  }, [addOneOnOneNote]);
+
+  const handleOpenOneOnOneNoteModal = useCallback(() => {
+    const config = getOneOnOneConfig();
+    if (!config) {
+      setActiveView("one-on-ones");
+      return;
+    }
+    setShowOneOnOneNoteModal(true);
+  }, [getOneOnOneConfig]);
+
+  const isOneOnOneDayToday = useCallback(() => {
+    const config = getOneOnOneConfig();
+    if (!config) return false;
+    return isOneOnOneDay(config, getTodayDate());
+  }, [getOneOnOneConfig]);
+
+  const getOneOnOnePendingCount = useCallback(() => {
+    const config = getOneOnOneConfig();
+    if (!config) return 0;
+    return getOneOnOnePendingNotes(config.id).length;
+  }, [getOneOnOneConfig, getOneOnOnePendingNotes]);
+
+  const handleScheduleOneOnOneNote = useCallback((noteId: string) => {
+    const today = new Date();
+    setCalendarPickerMonth(today.getMonth());
+    setCalendarPickerYear(today.getFullYear());
+    setPendingScheduleOneOnOneNote(noteId);
+    setShowDatePicker(true);
+  }, [setCalendarPickerMonth, setCalendarPickerYear, setShowDatePicker]);
+
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
     return () => clearInterval(timer);
@@ -339,6 +381,7 @@ function AppContent({ alertOverlay, onDismissAlert, nowPlaying, onRefreshNowPlay
       if (e.key === "Escape" && showDatePicker) {
         setShowDatePicker(false);
         setPendingScheduleTodo(null);
+        setPendingScheduleOneOnOneNote(null);
       }
     };
     window.addEventListener("keydown", handleKeyDown);
@@ -362,7 +405,10 @@ function AppContent({ alertOverlay, onDismissAlert, nowPlaying, onRefreshNowPlay
   };
 
   const selectDate = (date: string) => {
-    if (pendingScheduleTodo) {
+    if (pendingScheduleOneOnOneNote) {
+      scheduleOneOnOneNoteAsTask(pendingScheduleOneOnOneNote, date);
+      setPendingScheduleOneOnOneNote(null);
+    } else if (pendingScheduleTodo) {
       scheduleTodo(pendingScheduleTodo, date);
     } else {
       setSelectedDate(date);
@@ -403,6 +449,7 @@ function AppContent({ alertOverlay, onDismissAlert, nowPlaying, onRefreshNowPlay
   const handleCalendarClose = () => {
     setShowDatePicker(false);
     setPendingScheduleTodo(null);
+    setPendingScheduleOneOnOneNote(null);
   };
 
   const handleCalendarGoToToday = () => {
@@ -451,6 +498,7 @@ function AppContent({ alertOverlay, onDismissAlert, nowPlaying, onRefreshNowPlay
         onAddReview={() => setShowReviewModal(true)}
         onAddTask={() => setShowTaskModal(true)}
         onAddBragDoc={() => setShowBragDocModal(true)}
+        onAddOneOnOneNote={handleOpenOneOnOneNoteModal}
       />
 
       {getFocusTimers().map((timer) => {
@@ -475,7 +523,7 @@ function AppContent({ alertOverlay, onDismissAlert, nowPlaying, onRefreshNowPlay
 
       <main className="main-content">
         {activeView === "today" && (
-          <TodayView currentTime={currentTime} onNavigate={setActiveView} onStartTaskTimer={openTaskTimer} onAddCuriosity={() => setShowCuriosityModal(true)} todayReviewCount={getTodayReviewCount()} nowPlaying={nowPlaying} onRefreshNowPlaying={onRefreshNowPlaying} />
+          <TodayView currentTime={currentTime} onNavigate={setActiveView} onStartTaskTimer={openTaskTimer} onAddCuriosity={() => setShowCuriosityModal(true)} todayReviewCount={getTodayReviewCount()} nowPlaying={nowPlaying} onRefreshNowPlaying={onRefreshNowPlaying} isOneOnOneDay={isOneOnOneDayToday()} oneOnOnePendingCount={getOneOnOnePendingCount()} />
         )}
 
         {activeView === "tasks" && (
@@ -499,6 +547,10 @@ function AppContent({ alertOverlay, onDismissAlert, nowPlaying, onRefreshNowPlay
         {activeView === "curiosities" && <CuriositiesView />}
 
         {activeView === "reviews" && <ReviewsView />}
+
+        {activeView === "one-on-ones" && (
+          <OneOnOnesView onScheduleNote={handleScheduleOneOnOneNote} />
+        )}
 
         {activeView === "settings" && <SettingsView />}
       </main>
@@ -546,7 +598,7 @@ function AppContent({ alertOverlay, onDismissAlert, nowPlaying, onRefreshNowPlay
 
       <CalendarPicker
         show={showDatePicker}
-        contextText={pendingScheduleTodo?.text || null}
+        contextText={pendingScheduleOneOnOneNote ? "Schedule 1-1 action item" : pendingScheduleTodo?.text || null}
         month={calendarPickerMonth}
         year={calendarPickerYear}
         selectedDate={selectedDate}
@@ -611,6 +663,12 @@ function AppContent({ alertOverlay, onDismissAlert, nowPlaying, onRefreshNowPlay
         show={showBragDocModal}
         onClose={() => setShowBragDocModal(false)}
         onSave={handleAddBragDoc}
+      />
+
+      <OneOnOneNoteModal
+        show={showOneOnOneNoteModal}
+        onClose={() => setShowOneOnOneNoteModal(false)}
+        onSave={handleAddOneOnOneNote}
       />
 
       {activeTimers.filter((t) => t.type === "task").map((timer) => {

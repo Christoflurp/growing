@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 
-export type NavView = "today" | "tasks" | "goals" | "notes" | "bragdoc" | "curiosities" | "reviews" | "settings";
+export type NavView = "today" | "tasks" | "goals" | "notes" | "bragdoc" | "curiosities" | "reviews" | "one-on-ones" | "settings";
 
 interface NavItem {
   view: NavView;
@@ -56,6 +56,18 @@ const planGroup: NavGroup = {
           <circle cx="12" cy="12" r="9" />
           <circle cx="12" cy="12" r="5" />
           <circle cx="12" cy="12" r="1" fill="currentColor" />
+        </svg>
+      ),
+    },
+    {
+      view: "one-on-ones",
+      title: "1-1s",
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4-4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M23 21v-2a4 4 0 00-3-3.87" />
+          <path d="M16 3.13a4 4 0 010 7.75" />
         </svg>
       ),
     },
@@ -150,6 +162,7 @@ interface TabNavProps {
   onAddReview?: () => void;
   onAddTask?: () => void;
   onAddBragDoc?: () => void;
+  onAddOneOnOneNote?: () => void;
 }
 
 const TabNav: React.FC<TabNavProps> = ({
@@ -170,6 +183,7 @@ const TabNav: React.FC<TabNavProps> = ({
   onAddReview,
   onAddTask,
   onAddBragDoc,
+  onAddOneOnOneNote,
 }) => {
   const [menuExpanded, setMenuExpanded] = useState(false);
   const [addDropdownOpen, setAddDropdownOpen] = useState(false);
@@ -495,6 +509,21 @@ const TabNav: React.FC<TabNavProps> = ({
                   <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" />
                 </svg>
                 <span>Review</span>
+              </button>
+              <button
+                className="add-dropdown-item"
+                onClick={() => {
+                  onAddOneOnOneNote?.();
+                  setAddDropdownOpen(false);
+                }}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4-4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path d="M23 21v-2a4 4 0 00-3-3.87" />
+                  <path d="M16 3.13a4 4 0 010 7.75" />
+                </svg>
+                <span>1-1 Note</span>
               </button>
             </div>
           )}

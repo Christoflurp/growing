@@ -22,9 +22,11 @@ interface TodayViewProps {
   todayReviewCount?: number;
   nowPlaying?: NowPlayingInfo | null;
   onRefreshNowPlaying?: () => void;
+  isOneOnOneDay?: boolean;
+  oneOnOnePendingCount?: number;
 }
 
-export function TodayView({ currentTime, onNavigate, onStartTaskTimer, onAddCuriosity, todayReviewCount, nowPlaying, onRefreshNowPlaying }: TodayViewProps) {
+export function TodayView({ currentTime, onNavigate, onStartTaskTimer, onAddCuriosity, todayReviewCount, nowPlaying, onRefreshNowPlaying, isOneOnOneDay, oneOnOnePendingCount }: TodayViewProps) {
   const { data, saveData } = useAppData();
   const { showConfirm } = useConfirmModal();
 
@@ -217,6 +219,21 @@ export function TodayView({ currentTime, onNavigate, onStartTaskTimer, onAddCuri
           </div>
         </div>
         <div className="header-actions">
+          {isOneOnOneDay && (
+            <button
+              className="one-on-one-badge"
+              onClick={() => onNavigate("one-on-ones")}
+              title="1-1 today"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4-4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M23 21v-2a4 4 0 00-3-3.87" />
+                <path d="M16 3.13a4 4 0 010 7.75" />
+              </svg>
+              {(oneOnOnePendingCount ?? 0) > 0 && oneOnOnePendingCount}
+            </button>
+          )}
           {(todayReviewCount ?? 0) > 0 && (
             <button
               className="reviews-badge"
