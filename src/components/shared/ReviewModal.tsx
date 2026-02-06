@@ -4,14 +4,17 @@ import { parsePrLink } from "../../hooks/useReviews";
 interface ReviewModalProps {
   show: boolean;
   onClose: () => void;
-  onSave: (prLink: string) => void;
+  onSave: (prLink: string, isReReview: boolean) => void;
+  checkDuplicate?: (url: string) => boolean;
 }
 
-export function ReviewModal({ show, onClose, onSave }: ReviewModalProps) {
+export function ReviewModal({ show, onClose, onSave, checkDuplicate }: ReviewModalProps) {
   const [prLink, setPrLink] = useState("");
+  const [isReReview, setIsReReview] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const { title, isValid } = parsePrLink(prLink);
+  const isDuplicate = Boolean(prLink && isValid && checkDuplicate?.(prLink));
 
   useEffect(() => {
     if (show && inputRef.current) {
@@ -21,14 +24,18 @@ export function ReviewModal({ show, onClose, onSave }: ReviewModalProps) {
 
   if (!show) return null;
 
+  const canSubmit = isValid && (!isDuplicate || isReReview);
+
   const handleSave = () => {
-    if (!isValid) return;
-    onSave(prLink.trim());
+    if (!canSubmit) return;
+    onSave(prLink.trim(), isReReview);
     setPrLink("");
+    setIsReReview(false);
   };
 
   const handleClose = () => {
     setPrLink("");
+    setIsReReview(false);
     onClose();
   };
 
@@ -49,17 +56,30 @@ export function ReviewModal({ show, onClose, onSave }: ReviewModalProps) {
           type="text"
           placeholder="Paste GitHub or Graphite PR link..."
           value={prLink}
-          onChange={(e) => setPrLink(e.target.value)}
-          className={`modal-input ${prLink && !isValid ? "invalid" : ""}`}
+          onChange={(e) => {
+            setPrLink(e.target.value);
+            setIsReReview(false);
+          }}
+          className={`modal-input ${prLink && (!isValid || (isDuplicate && !isReReview)) ? "invalid" : ""}`}
           onKeyDown={(e) => {
-            if (e.key === "Enter" && isValid) handleSave();
+            if (e.key === "Enter" && canSubmit) handleSave();
             if (e.key === "Escape") handleClose();
           }}
         />
-        {prLink && isValid && <p className="review-preview">{title}</p>}
+        {prLink && isValid && (!isDuplicate || isReReview) && <p className="review-preview">{title}</p>}
         {prLink && !isValid && <p className="review-error">Please enter a valid GitHub or Graphite PR URL</p>}
+        {isDuplicate && (
+          <label className="re-review-label">
+            <input
+              type="checkbox"
+              checked={isReReview}
+              onChange={(e) => setIsReReview(e.target.checked)}
+            />
+            <span>Re-review (this PR was already reviewed)</span>
+          </label>
+        )}
         <div className="modal-actions">
-          <button className="btn-save" onClick={handleSave} disabled={!isValid}>
+          <button className="btn-save" onClick={handleSave} disabled={!canSubmit}>
             Add
           </button>
           <button className="btn-cancel" onClick={handleClose}>

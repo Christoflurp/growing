@@ -3868,6 +3868,11 @@ select:disabled {
   background: var(--bg-secondary);
 }
 
+.task-detail-actions-left {
+  display: flex;
+  gap: 8px;
+}
+
 .task-detail-actions-right {
   display: flex;
   gap: 8px;
@@ -3901,6 +3906,16 @@ select:disabled {
 .task-detail-btn.delete:hover {
   background: rgba(184, 125, 125, 0.1);
   color: var(--monthly);
+}
+
+.task-detail-btn.backlog {
+  background: none;
+  color: var(--text-muted);
+}
+
+.task-detail-btn.backlog:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 
 .task-detail-btn.timer {
@@ -5554,6 +5569,18 @@ select:disabled {
 }
 
 /* Music Widget - Richer Apple Music integration */
+.today-widgets-row {
+  display: flex;
+  gap: 12px;
+  padding: 0 16px 16px;
+}
+
+.today-widgets-row .music-widget {
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+}
+
 .music-widget {
   display: flex;
   align-items: center;
@@ -5831,6 +5858,88 @@ select:disabled {
 
 .music-widget-artist.clickable:hover {
   color: var(--accent);
+}
+
+.curiosity-widget {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: var(--transition);
+  flex: 1;
+  min-width: 0;
+}
+
+.curiosity-widget.empty {
+  border-style: dashed;
+}
+
+.curiosity-widget.empty .curiosity-widget-title {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.curiosity-widget:hover {
+  background: var(--bg-secondary);
+  border-color: var(--accent);
+}
+
+.curiosity-widget-icon {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent-soft);
+  border-radius: var(--radius-sm);
+  color: var(--accent);
+}
+
+.curiosity-widget-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.curiosity-widget-content {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.curiosity-widget-label {
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+}
+
+.curiosity-widget-title {
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin: 2px 0 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.curiosity-widget-desc {
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin: 2px 0 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Collapsed sidebar styles (used by Obsidian) */
@@ -7285,6 +7394,26 @@ select:disabled {
   border-color: var(--monthly);
 }
 
+.review-notes-input {
+  width: 100%;
+  padding: 8px 12px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  margin-bottom: 10px;
+  resize: vertical;
+  min-height: 40px;
+  max-height: 120px;
+}
+
+.review-notes-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
 .review-preview {
   font-family: var(--font-body);
   font-size: 13px;
@@ -7390,6 +7519,25 @@ select:disabled {
 
 .review-title:hover {
   text-decoration: underline;
+}
+
+.re-review-badge {
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--accent);
+  background: var(--accent-soft);
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+}
+
+.review-notes {
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin: 2px 0 0;
+  line-height: 1.4;
 }
 
 .review-timestamp {

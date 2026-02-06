@@ -137,6 +137,8 @@ export interface Review {
   completedAt?: string;
   createdAt: string;
   date: string;
+  isReReview?: boolean;
+  notes?: string;
 }
 
 export interface NowPlayingInfo {

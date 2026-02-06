@@ -1,12 +1,13 @@
 import { useState, useRef, useEffect } from "react";
 import { useTasks } from "../../hooks/useTasks";
+import { useTodos } from "../../hooks/useTodos";
 import { useGoals } from "../../hooks/useGoals";
 import { useConfetti } from "../../hooks/useConfetti";
 import { useConfirmModal } from "../../context/ConfirmModalContext";
 import { useAppData } from "../../context/AppDataContext";
 import { getGreeting, formatDateTime } from "../../utils/formatUtils";
 import { getTodayDate } from "../../utils/dateUtils";
-import { NavView, DailyTask, NowPlayingInfo } from "../../types";
+import { NavView, DailyTask, NowPlayingInfo, Curiosity } from "../../types";
 import { FrogIcon } from "../shared/FrogIcon";
 import { CategoryToggle } from "../shared/CategoryToggle";
 import { MarkdownText } from "../shared/MarkdownText";
@@ -17,12 +18,13 @@ interface TodayViewProps {
   currentTime: Date;
   onNavigate: (view: NavView) => void;
   onStartTaskTimer?: (taskId: string, taskName: string) => void;
+  onAddCuriosity?: () => void;
   todayReviewCount?: number;
   nowPlaying?: NowPlayingInfo | null;
   onRefreshNowPlaying?: () => void;
 }
 
-export function TodayView({ currentTime, onNavigate, onStartTaskTimer, todayReviewCount, nowPlaying, onRefreshNowPlaying }: TodayViewProps) {
+export function TodayView({ currentTime, onNavigate, onStartTaskTimer, onAddCuriosity, todayReviewCount, nowPlaying, onRefreshNowPlaying }: TodayViewProps) {
   const { data, saveData } = useAppData();
   const { showConfirm } = useConfirmModal();
 
@@ -37,6 +39,7 @@ export function TodayView({ currentTime, onNavigate, onStartTaskTimer, todayRevi
       : [...currentAtcDays, today];
     await saveData({ ...data, atcDays: newAtcDays });
   };
+  const { deferTaskToBacklog } = useTodos();
   const { getAllGoals, getGoalById } = useGoals();
 
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
@@ -85,6 +88,11 @@ export function TodayView({ currentTime, onNavigate, onStartTaskTimer, todayRevi
 
   const todayTasks = getTodayTasks();
   useConfetti(todayTasks);
+
+  const incompleteCuriosities = (data?.curiosities || []).filter((c: Curiosity) => !c.completed);
+  const suggestedCuriosity = incompleteCuriosities.length > 0
+    ? incompleteCuriosities[Math.floor(Date.now() / 86400000) % incompleteCuriosities.length]
+    : null;
 
   const deleteTask = (taskId: string) => {
     showConfirm("Delete this task?", () => {
@@ -244,9 +252,33 @@ export function TodayView({ currentTime, onNavigate, onStartTaskTimer, todayRevi
         </div>
       </header>
 
-      {data?.appleMusicEnabled !== false && (
-        <MusicWidget nowPlaying={nowPlaying ?? null} onRefresh={onRefreshNowPlaying} />
-      )}
+      <div className="today-widgets-row">
+        {data?.appleMusicEnabled !== false && (
+          <MusicWidget nowPlaying={nowPlaying ?? null} onRefresh={onRefreshNowPlaying} />
+        )}
+        <div className={`curiosity-widget ${!suggestedCuriosity ? "empty" : ""}`} onClick={() => suggestedCuriosity ? onNavigate("curiosities") : onAddCuriosity?.()}>
+          <div className="curiosity-widget-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+          </div>
+          <div className="curiosity-widget-content">
+            <span className="curiosity-widget-label">Curiosity</span>
+            {suggestedCuriosity ? (
+              <>
+                <p className="curiosity-widget-title">{suggestedCuriosity.title}</p>
+                {suggestedCuriosity.description && (
+                  <p className="curiosity-widget-desc">{suggestedCuriosity.description}</p>
+                )}
+              </>
+            ) : (
+              <p className="curiosity-widget-title">What are you unsure about?</p>
+            )}
+          </div>
+        </div>
+      </div>
 
       {showTaskForm && (
           <div className="task-form">
@@ -481,6 +513,10 @@ export function TodayView({ currentTime, onNavigate, onStartTaskTimer, todayRevi
             onStartTaskTimer(selectedTask.id, selectedTask.text);
             setSelectedTask(null);
           } : undefined}
+          onMoveToBacklog={() => {
+            deferTaskToBacklog(selectedTask);
+            setSelectedTask(null);
+          }}
           onDelete={() => {
             deleteTask(selectedTask.id);
             setSelectedTask(null);

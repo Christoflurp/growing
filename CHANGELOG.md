@@ -7,24 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-02-06
+
 ### Added
 
 - Favourite button in Apple Music widget
   - Heart icon appears inline after track title
   - Click to toggle favourite status in Apple Music
   - Filled pink heart when track is favourited
-  - No need to switch to Apple Music app
 - Cmd+Enter to submit forms from any text field
   - Works consistently across all modals and inline forms
-  - Submit tasks, curiosities, brag docs, and backlog items from description fields
+- Notes field on PR reviews
+  - Optional textarea when adding or editing reviews
+  - Notes display below the PR title on review cards
+- Move tasks to backlog from the task detail modal
+  - "Backlog" button appears for incomplete tasks alongside Delete
+  - Works from both Today and Tasks views
+- Curiosity widget on Today dashboard
+  - Shows a random incomplete curiosity beside the Apple Music widget
+  - Responsive two-card layout when one or both widgets are visible
+  - Clicking navigates to the Curiosities view
+  - Empty state with dashed border prompts to add a new curiosity
 
 ### Fixed
 
+- Re-review status now persists to data and displays as a badge on review cards
+  - Previously the re-review checkbox value was discarded after submission
+- Quick Add (+) menu now detects duplicate PR reviews and offers re-review toggle
+  - Previously the modal had no duplicate detection at all
 - Improved album artwork reliability
   - Added retry mechanism (up to 3 attempts) for local artwork extraction
   - Added retry mechanism for iTunes API fallback
   - Increased curl timeout from 3s to 5s
-  - No longer caches failed artwork fetches, allowing retries on next query
 
 ## [1.2.1] - 2026-01-30
 

@@ -180,7 +180,16 @@ function AppContent({ alertOverlay, onDismissAlert, nowPlaying, onRefreshNowPlay
     setShowCuriosityModal(false);
   }, [data, saveData]);
 
-  const handleAddReview = useCallback(async (prLink: string) => {
+  const checkReviewDuplicate = useCallback((url: string) => {
+    const { prKey } = parsePrLink(url);
+    if (!prKey) return false;
+    return (data?.reviews || []).some((r) => {
+      const existingKey = r.title.replace(/^\[|\]$/g, "").toLowerCase();
+      return existingKey === prKey;
+    });
+  }, [data]);
+
+  const handleAddReview = useCallback(async (prLink: string, isReReview: boolean) => {
     if (!data) return;
     const { title, source } = parsePrLink(prLink);
     const newReview: Review = {
@@ -192,6 +201,7 @@ function AppContent({ alertOverlay, onDismissAlert, nowPlaying, onRefreshNowPlay
       completedAt: new Date().toISOString(),
       createdAt: new Date().toISOString(),
       date: getTodayDate(),
+      ...(isReReview && { isReReview: true }),
     };
     await saveData({
       ...data,
@@ -465,7 +475,7 @@ function AppContent({ alertOverlay, onDismissAlert, nowPlaying, onRefreshNowPlay
 
       <main className="main-content">
         {activeView === "today" && (
-          <TodayView currentTime={currentTime} onNavigate={setActiveView} onStartTaskTimer={openTaskTimer} todayReviewCount={getTodayReviewCount()} nowPlaying={nowPlaying} onRefreshNowPlaying={onRefreshNowPlaying} />
+          <TodayView currentTime={currentTime} onNavigate={setActiveView} onStartTaskTimer={openTaskTimer} onAddCuriosity={() => setShowCuriosityModal(true)} todayReviewCount={getTodayReviewCount()} nowPlaying={nowPlaying} onRefreshNowPlaying={onRefreshNowPlaying} />
         )}
 
         {activeView === "tasks" && (
@@ -587,6 +597,7 @@ function AppContent({ alertOverlay, onDismissAlert, nowPlaying, onRefreshNowPlay
         show={showReviewModal}
         onClose={() => setShowReviewModal(false)}
         onSave={handleAddReview}
+        checkDuplicate={checkReviewDuplicate}
       />
 
       <TaskModal

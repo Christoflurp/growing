@@ -9,6 +9,7 @@ interface TaskDetailModalProps {
   onEdit: () => void;
   onToggleComplete: () => void;
   onStartTimer?: () => void;
+  onMoveToBacklog?: () => void;
   onDelete: () => void;
 }
 
@@ -19,6 +20,7 @@ export function TaskDetailModal({
   onEdit,
   onToggleComplete,
   onStartTimer,
+  onMoveToBacklog,
   onDelete,
 }: TaskDetailModalProps) {
   const category = task.category || "work";
@@ -97,13 +99,28 @@ export function TaskDetailModal({
         </div>
 
         <div className="task-detail-actions">
-          <button className="task-detail-btn delete" onClick={onDelete}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <polyline points="3 6 5 6 21 6" />
-              <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
-            </svg>
-            Delete
-          </button>
+          <div className="task-detail-actions-left">
+            <button className="task-detail-btn delete" onClick={onDelete}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <polyline points="3 6 5 6 21 6" />
+                <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+              </svg>
+              Delete
+            </button>
+            {!task.completed && onMoveToBacklog && (
+              <button className="task-detail-btn backlog" onClick={onMoveToBacklog}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <line x1="8" y1="6" x2="21" y2="6" />
+                  <line x1="8" y1="12" x2="21" y2="12" />
+                  <line x1="8" y1="18" x2="21" y2="18" />
+                  <line x1="3" y1="6" x2="3.01" y2="6" />
+                  <line x1="3" y1="12" x2="3.01" y2="12" />
+                  <line x1="3" y1="18" x2="3.01" y2="18" />
+                </svg>
+                Backlog
+              </button>
+            )}
+          </div>
           <div className="task-detail-actions-right">
             {!task.completed && onStartTimer && (
               <button className="task-detail-btn timer" onClick={onStartTimer}>

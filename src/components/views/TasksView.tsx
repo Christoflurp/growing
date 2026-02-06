@@ -717,6 +717,10 @@ export function TasksView({ selectedDate, onOpenDatePicker, onOpenSchedulePicker
             onStartTaskTimer(selectedTask.id, selectedTask.text);
             setSelectedTask(null);
           } : undefined}
+          onMoveToBacklog={() => {
+            deferTaskToBacklog(selectedTask);
+            setSelectedTask(null);
+          }}
           onDelete={() => {
             deleteTask(selectedTask.id);
             setSelectedTask(null);

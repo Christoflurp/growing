@@ -35,9 +35,11 @@ export function useReviews() {
 
   const [showForm, setShowForm] = useState(false);
   const [prLink, setPrLink] = useState("");
+  const [reviewNotes, setReviewNotes] = useState("");
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editPrLink, setEditPrLink] = useState("");
+  const [editNotes, setEditNotes] = useState("");
   const [isReReview, setIsReReview] = useState(false);
 
   const getReviews = useCallback(() => {
@@ -82,15 +84,18 @@ export function useReviews() {
       completedAt: new Date().toISOString(),
       createdAt: new Date().toISOString(),
       date: getTodayDate(),
+      ...(isReReview && { isReReview: true }),
+      ...(reviewNotes.trim() && { notes: reviewNotes.trim() }),
     };
     await saveData({
       ...data,
       reviews: [newReview, ...(data.reviews || [])],
     });
     setPrLink("");
+    setReviewNotes("");
     setIsReReview(false);
     setShowForm(false);
-  }, [data, saveData, prLink, isDuplicate, isReReview]);
+  }, [data, saveData, prLink, reviewNotes, isDuplicate, isReReview]);
 
   const toggleComplete = useCallback(
     async (id: string) => {
@@ -125,11 +130,13 @@ export function useReviews() {
   const startEditing = useCallback((review: Review) => {
     setEditingId(review.id);
     setEditPrLink(review.prLink);
+    setEditNotes(review.notes || "");
   }, []);
 
   const cancelEditing = useCallback(() => {
     setEditingId(null);
     setEditPrLink("");
+    setEditNotes("");
   }, []);
 
   const updateReview = useCallback(async () => {
@@ -141,11 +148,17 @@ export function useReviews() {
     await saveData({
       ...data,
       reviews: (data.reviews || []).map((r) =>
-        r.id === editingId ? { ...r, prLink: editPrLink.trim(), title, source } : r
+        r.id === editingId ? {
+          ...r,
+          prLink: editPrLink.trim(),
+          title,
+          source,
+          notes: editNotes.trim() || undefined,
+        } : r
       ),
     });
     cancelEditing();
-  }, [data, saveData, editingId, editPrLink, cancelEditing, isDuplicate]);
+  }, [data, saveData, editingId, editPrLink, editNotes, cancelEditing, isDuplicate]);
 
   const checkDuplicate = useCallback(
     (url: string, excludeId?: string) => {
@@ -161,9 +174,13 @@ export function useReviews() {
     setShowForm,
     prLink,
     setPrLink,
+    reviewNotes,
+    setReviewNotes,
     editingId,
     editPrLink,
     setEditPrLink,
+    editNotes,
+    setEditNotes,
     isReReview,
     setIsReReview,
     getReviews,

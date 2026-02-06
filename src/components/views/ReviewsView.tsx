@@ -28,9 +28,13 @@ export function ReviewsView() {
     setShowForm,
     prLink,
     setPrLink,
+    reviewNotes,
+    setReviewNotes,
     editingId,
     editPrLink,
     setEditPrLink,
+    editNotes,
+    setEditNotes,
     isReReview,
     setIsReReview,
     getReviews,
@@ -100,6 +104,23 @@ export function ReviewsView() {
               <span>Re-review (this PR was already reviewed)</span>
             </label>
           )}
+          {isPrLinkValid && (!isPrLinkDuplicate || isReReview) && (
+            <textarea
+              placeholder="Notes (optional)"
+              value={reviewNotes}
+              onChange={(e) => setReviewNotes(e.target.value)}
+              className="review-notes-input"
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && e.metaKey && isPrLinkValid && (!isPrLinkDuplicate || isReReview)) addReview();
+                if (e.key === "Escape") {
+                  setShowForm(false);
+                  setPrLink("");
+                  setReviewNotes("");
+                  setIsReReview(false);
+                }
+              }}
+            />
+          )}
           <div className="form-actions">
             <button className="btn-save" onClick={addReview} disabled={!isPrLinkValid || (isPrLinkDuplicate && !isReReview)}>
               Add
@@ -109,6 +130,7 @@ export function ReviewsView() {
               onClick={() => {
                 setShowForm(false);
                 setPrLink("");
+                setReviewNotes("");
                 setIsReReview(false);
               }}
             >
@@ -160,6 +182,16 @@ export function ReviewsView() {
                         {isEditPrLinkDuplicate && (
                           <p className="review-error">This PR has already been added</p>
                         )}
+                        <textarea
+                          placeholder="Notes (optional)"
+                          value={editNotes}
+                          onChange={(e) => setEditNotes(e.target.value)}
+                          className="review-notes-input"
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" && e.metaKey && isEditPrLinkValid && !isEditPrLinkDuplicate) updateReview();
+                            if (e.key === "Escape") cancelEditing();
+                          }}
+                        />
                         <div className="form-actions">
                           <button className="btn-save" onClick={updateReview} disabled={!isEditPrLinkValid || isEditPrLinkDuplicate}>
                             Save
@@ -189,7 +221,9 @@ export function ReviewsView() {
                             >
                               {review.title}
                             </a>
+                            {review.isReReview && <span className="re-review-badge">Re-review</span>}
                           </div>
+                          {review.notes && <p className="review-notes">{review.notes}</p>}
                           <span className="review-timestamp" title={formatFullDate(review.createdAt)}>
                             {formatRelativeTime(review.createdAt)}
                           </span>
@@ -241,7 +275,9 @@ export function ReviewsView() {
                       >
                         {review.title}
                       </a>
+                      {review.isReReview && <span className="re-review-badge">Re-review</span>}
                     </div>
+                    {review.notes && <p className="review-notes">{review.notes}</p>}
                     <span className="review-timestamp" title={formatFullDate(review.createdAt)}>
                       {formatRelativeTime(review.createdAt)}
                     </span>

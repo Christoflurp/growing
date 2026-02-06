@@ -5,17 +5,29 @@ export interface ChangelogEntry {
   changes: string[];
 }
 
-export const APP_VERSION = "1.2.1";
+export const APP_VERSION = "1.3.0";
 
 export const changelog: ChangelogEntry[] = [
   {
     version: "Unreleased",
     date: null,
     title: "Upcoming Changes",
+    changes: [],
+  },
+  {
+    version: "1.3.0",
+    date: "2026-02-06",
+    title: "Reviews, Backlog & Curiosity Widget",
     changes: [
       "Favourite button in Apple Music widget - toggle track favourite status without leaving the app",
       "Improved album artwork reliability with retry mechanism for both local and iTunes API fetching",
       "Cmd+Enter to submit forms from any text field - consistent keyboard shortcut across all modals and inline forms",
+      "Re-review status now persists and displays as a badge on review cards",
+      "Quick Add (+) menu now detects duplicate PR reviews and offers re-review toggle",
+      "Notes field on PR reviews - add optional context when logging or editing reviews",
+      "Move tasks to backlog from the task detail modal on any day",
+      "Curiosity widget on Today dashboard - shows a random incomplete curiosity alongside Apple Music",
+      "Empty curiosity widget prompts to add a new curiosity directly from the dashboard",
     ],
   },
   {

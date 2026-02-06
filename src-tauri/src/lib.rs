@@ -695,6 +695,10 @@ pub struct Review {
     #[serde(default, rename = "createdAt")]
     pub created_at: String,
     pub date: String,
+    #[serde(default, rename = "isReReview", skip_serializing_if = "Option::is_none")]
+    pub is_re_review: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub notes: Option<String>,
 }
 
 fn default_github_source() -> String {

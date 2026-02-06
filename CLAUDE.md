@@ -188,6 +188,7 @@ interface Review {
   createdAt: string;
   date: string;                      // YYYY-MM-DD for daily tracking
   isReReview?: boolean;              // True if reviewing same PR again
+  notes?: string;                    // Optional notes/context for the review
 }
 ```
 
