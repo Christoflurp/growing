@@ -34,8 +34,9 @@ npm run tauri build      # Build for production
 - **Task Categories** - Personal/Work toggle with visual badges on task cards
 - **Confetti** - Celebration animation when all daily tasks are completed
 - **Quick Add Dropdown** - + button opens menu to add tasks, timers, notes, brag docs, curiosities, or reviews
+- **Pear Programming** - CRT terminal-themed pairing session tracker with shell-style input and session timer
 
-### Views (10 tabs)
+### Views (11 tabs)
 
 1. **Today** - Dashboard with Apple Music widget, today's tasks, reviews count, and quick navigation
 2. **Tasks** - Daily task management with date navigation, carry-forward, and defer-to-backlog
@@ -45,8 +46,9 @@ npm run tauri build      # Build for production
 6. **Brag Doc** - Accomplishments log with images and links
 7. **Curiosities** - Track things you want to learn with completion status
 8. **Reviews** - Log PR reviews with auto-parsed GitHub links and daily counts
-9. **Notifications** - Reminder scheduling (daily/weekly)
-10. **Settings** - Theme, permissions, launch-at-login
+9. **1-1s** - Track manager meeting notes with session archiving and action scheduling
+10. **Pairing** - CRT terminal-themed pairing session tracker with per-partner folders, shell-style note input, session timer, and follow-up task creation
+11. **Settings** - Theme, permissions, launch-at-login, notifications
 
 ### Theming
 
@@ -109,6 +111,9 @@ interface AppData {
   featureRequests?: FeatureRequest[];
   bugReports?: BugReport[];
   activeTimers?: ActiveTimer[];      // Currently running timers (supports multiple)
+  pairingConfigs?: PairingConfig[];
+  pairingSessions?: PairingSession[];
+  pairingNotes?: PairingNote[];
 }
 
 type TaskCategory = "work" | "personal";
@@ -189,6 +194,41 @@ interface Review {
   date: string;                      // YYYY-MM-DD for daily tracking
   isReReview?: boolean;              // True if reviewing same PR again
   notes?: string;                    // Optional notes/context for the review
+}
+
+interface OneOnOneConfig {
+  id: string;
+  personName: string;
+  dayOfWeek: string;                 // "monday" | "tuesday" | ...
+  cadence: string;                   // "weekly" | "biweekly"
+  startDate: string;                 // YYYY-MM-DD
+  nextOverrideDate?: string;         // YYYY-MM-DD for one-time reschedule
+  createdAt: string;
+}
+
+interface PairingConfig {
+  id: string;
+  personName: string;
+  createdAt: string;
+}
+
+interface PairingSession {
+  id: string;
+  configId: string;
+  topic: string;                     // What are you pairing on
+  date: string;                      // YYYY-MM-DD
+  notes: string;                     // Post-session summary
+  completedAt?: string;              // ISO 8601 timestamp
+  createdAt: string;
+}
+
+interface PairingNote {
+  id: string;
+  configId: string;
+  text: string;
+  noteType?: PairingNoteType;        // Legacy, defaults to "note"
+  sessionId?: string;                // Links to PairingSession.id
+  createdAt: string;
 }
 ```
 

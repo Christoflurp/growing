@@ -42,6 +42,7 @@ import { TaskModal } from "./components/shared/TaskModal";
 import { BragDocModal } from "./components/shared/BragDocModal";
 import { OneOnOneNoteModal } from "./components/shared/OneOnOneNoteModal";
 import { OneOnOnesView } from "./components/views/OneOnOnesView";
+import { PairingView } from "./components/views/PairingView";
 import { NavView, Todo, NowPlayingInfo, Curiosity, Review, TaskCategory, DailyTask, BragDocEntry, OneOnOneNoteType } from "./types";
 import { useOneOnOnes } from "./hooks/useOneOnOnes";
 import { isOneOnOneDay } from "./utils/oneOnOneUtils";
@@ -438,7 +439,7 @@ function AppContent({ alertOverlay, onDismissAlert, nowPlaying, onRefreshNowPlay
     }
     const changedAt = new Date(data.notifications.stand_mode_changed_at);
     const now = currentTime;
-    const elapsedMinutes = Math.floor((now.getTime() - changedAt.getTime()) / 60000);
+    const elapsedMinutes = Math.max(0, Math.floor((now.getTime() - changedAt.getTime()) / 60000));
     const duration = data.notifications.stand_mode === "standing"
       ? (data.notifications.stand_duration_minutes || 45)
       : (data.notifications.sit_duration_minutes || 45);
@@ -499,6 +500,7 @@ function AppContent({ alertOverlay, onDismissAlert, nowPlaying, onRefreshNowPlay
         onAddTask={() => setShowTaskModal(true)}
         onAddBragDoc={() => setShowBragDocModal(true)}
         onAddOneOnOneNote={handleOpenOneOnOneNoteModal}
+        onAddPairingNote={() => setActiveView("pairing")}
       />
 
       {getFocusTimers().map((timer) => {
@@ -551,6 +553,8 @@ function AppContent({ alertOverlay, onDismissAlert, nowPlaying, onRefreshNowPlay
         {activeView === "one-on-ones" && (
           <OneOnOnesView onScheduleNote={handleScheduleOneOnOneNote} />
         )}
+
+        {activeView === "pairing" && <PairingView />}
 
         {activeView === "settings" && <SettingsView />}
       </main>

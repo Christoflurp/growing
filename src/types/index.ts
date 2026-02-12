@@ -107,6 +107,9 @@ export interface AppData {
   oneOnOneConfigs?: OneOnOneConfig[];
   oneOnOneNotes?: OneOnOneNote[];
   oneOnOneSessions?: OneOnOneSession[];
+  pairingConfigs?: PairingConfig[];
+  pairingSessions?: PairingSession[];
+  pairingNotes?: PairingNote[];
   theme?: string;
   darkMode?: boolean;
   userName?: string;
@@ -118,7 +121,7 @@ export interface AppData {
   atcDays?: string[];
 }
 
-export type NavView = "today" | "tasks" | "goals" | "notes" | "bragdoc" | "curiosities" | "reviews" | "one-on-ones" | "settings";
+export type NavView = "today" | "tasks" | "goals" | "notes" | "bragdoc" | "curiosities" | "reviews" | "one-on-ones" | "pairing" | "settings";
 
 export interface Curiosity {
   id: string;
@@ -153,6 +156,7 @@ export interface OneOnOneConfig {
   dayOfWeek: string;
   cadence: OneOnOneCadence;
   startDate: string;
+  nextOverrideDate?: string;
   createdAt: string;
 }
 
@@ -171,6 +175,33 @@ export interface OneOnOneSession {
   configId: string;
   date: string;
   completedAt: string;
+}
+
+export type PairingNoteType = "takeaway" | "follow-up" | "note";
+
+export interface PairingConfig {
+  id: string;
+  personName: string;
+  createdAt: string;
+}
+
+export interface PairingSession {
+  id: string;
+  configId: string;
+  topic: string;
+  date: string;
+  notes: string;
+  completedAt?: string;
+  createdAt: string;
+}
+
+export interface PairingNote {
+  id: string;
+  configId: string;
+  text: string;
+  noteType?: PairingNoteType;
+  sessionId?: string;
+  createdAt: string;
 }
 
 export interface NowPlayingInfo {

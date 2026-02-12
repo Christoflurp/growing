@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 
-export type NavView = "today" | "tasks" | "goals" | "notes" | "bragdoc" | "curiosities" | "reviews" | "one-on-ones" | "settings";
+export type NavView = "today" | "tasks" | "goals" | "notes" | "bragdoc" | "curiosities" | "reviews" | "one-on-ones" | "pairing" | "settings";
 
 interface NavItem {
   view: NavView;
@@ -68,6 +68,17 @@ const planGroup: NavGroup = {
           <circle cx="9" cy="7" r="4" />
           <path d="M23 21v-2a4 4 0 00-3-3.87" />
           <path d="M16 3.13a4 4 0 010 7.75" />
+        </svg>
+      ),
+    },
+    {
+      view: "pairing",
+      title: "Pairing",
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <path d="M12 2C9.5 2 8 4.5 8 7c0 3 2 5 4 9 2-4 4-6 4-9 0-2.5-1.5-5-4-5z" />
+          <path d="M12 16v6" />
+          <path d="M9 22c1-.5 2-1 3-1s2 .5 3 1" />
         </svg>
       ),
     },
@@ -163,6 +174,7 @@ interface TabNavProps {
   onAddTask?: () => void;
   onAddBragDoc?: () => void;
   onAddOneOnOneNote?: () => void;
+  onAddPairingNote?: () => void;
 }
 
 const TabNav: React.FC<TabNavProps> = ({
@@ -184,6 +196,7 @@ const TabNav: React.FC<TabNavProps> = ({
   onAddTask,
   onAddBragDoc,
   onAddOneOnOneNote,
+  onAddPairingNote,
 }) => {
   const [menuExpanded, setMenuExpanded] = useState(false);
   const [addDropdownOpen, setAddDropdownOpen] = useState(false);
@@ -524,6 +537,20 @@ const TabNav: React.FC<TabNavProps> = ({
                   <path d="M16 3.13a4 4 0 010 7.75" />
                 </svg>
                 <span>1-1 Note</span>
+              </button>
+              <button
+                className="add-dropdown-item"
+                onClick={() => {
+                  onAddPairingNote?.();
+                  setAddDropdownOpen(false);
+                }}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path d="M12 2C9.5 2 8 4.5 8 7c0 3 2 5 4 9 2-4 4-6 4-9 0-2.5-1.5-5-4-5z" />
+                  <path d="M12 16v6" />
+                  <path d="M9 22c1-.5 2-1 3-1s2 .5 3 1" />
+                </svg>
+                <span>Pairing Note</span>
               </button>
             </div>
           )}

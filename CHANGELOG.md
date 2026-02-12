@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-02-13
+
+### Added
+
+- Pear Programming view for tracking pairing sessions
+  - CRT terminal-themed UI with retro green-screen aesthetic (scanlines, noise, phosphor glow)
+  - Desktop folder icons for partner selection with multi-partner support
+  - Start sessions with a topic, log notes in a shell-style scrollable terminal
+  - Running session timer tracks pairing duration
+  - Post-session wrap-up with optional summary and follow-up items
+  - Follow-up items automatically create backlog tasks
+  - Session log with click-to-load viewing of past sessions
+  - Pear-themed personality ("Pear Programming // Terminal v1.0")
+- 1-1 rescheduling support
+  - Reschedule button with date picker next to the 1-1 date
+  - "Rescheduled" badge when override is active
+  - Auto-clears after the rescheduled date passes
+  - Cadence stays anchored to original startDate
+
+### Fixed
+
+- Sit/stand timer showing 46m instead of 45m on first enable
+  - Race condition between async state save and interval-driven render caused negative elapsed time
+
 ## [1.3.0] - 2026-02-06
 
 ### Added

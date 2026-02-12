@@ -3,6 +3,8 @@ import { useOneOnOnes } from "../../hooks/useOneOnOnes";
 import { useConfirmModal } from "../../context/ConfirmModalContext";
 import { OneOnOneCadence, OneOnOneNoteType } from "../../types";
 import { formatRelativeTime } from "../../utils/formatUtils";
+import { getNextOneOnOneDate } from "../../utils/oneOnOneUtils";
+import { getTodayDate } from "../../utils/dateUtils";
 
 interface OneOnOnesViewProps {
   onScheduleNote?: (noteId: string) => void;
@@ -28,6 +30,8 @@ export function OneOnOnesView({ onScheduleNote }: OneOnOnesViewProps) {
     updateNote,
     deleteNote,
     completeSession,
+    rescheduleNextOneOnOne,
+    clearReschedule,
   } = useOneOnOnes();
 
   const config = getConfig();
@@ -45,6 +49,8 @@ export function OneOnOnesView({ onScheduleNote }: OneOnOnesViewProps) {
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [editNoteText, setEditNoteText] = useState("");
   const [editNoteType, setEditNoteType] = useState<OneOnOneNoteType>("topic");
+  const [showReschedule, setShowReschedule] = useState(false);
+  const [rescheduleDate, setRescheduleDate] = useState("");
 
   const pendingNotes = config ? getPendingNotes(config.id) : [];
   const sessions = config ? getSessionsForConfig(config.id) : [];
@@ -88,6 +94,23 @@ export function OneOnOnesView({ onScheduleNote }: OneOnOnesViewProps) {
     setEditingNoteId(noteId);
     setEditNoteText(text);
     setEditNoteType(type);
+  };
+
+  const nextDate = config ? getNextOneOnOneDate(config, getTodayDate()) : null;
+  const nextDateFormatted = nextDate
+    ? new Date(nextDate + "T12:00:00").toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })
+    : null;
+  const isRescheduled = !!config?.nextOverrideDate && config.nextOverrideDate >= getTodayDate();
+
+  const handleReschedule = async () => {
+    if (!rescheduleDate) return;
+    await rescheduleNextOneOnOne(rescheduleDate);
+    setShowReschedule(false);
+    setRescheduleDate("");
+  };
+
+  const handleClearReschedule = async () => {
+    await clearReschedule();
   };
 
   const topicNotes = pendingNotes.filter((n) => n.noteType === "topic");
@@ -208,6 +231,59 @@ export function OneOnOnesView({ onScheduleNote }: OneOnOnesViewProps) {
               </svg>
             </button>
           </div>
+
+          {nextDateFormatted && (
+            <div className="one-on-ones-next-date entrance-2">
+              <span className="next-date-label">Next:</span>
+              <span className="next-date-value">{nextDateFormatted}</span>
+              {isRescheduled && (
+                <span className="next-date-rescheduled-badge">Rescheduled</span>
+              )}
+              {!showReschedule && !isRescheduled && (
+                <button className="config-edit-btn" onClick={() => setShowReschedule(true)} title="Reschedule">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                    <line x1="16" y1="2" x2="16" y2="6" />
+                    <line x1="8" y1="2" x2="8" y2="6" />
+                    <line x1="3" y1="10" x2="21" y2="10" />
+                  </svg>
+                </button>
+              )}
+              {isRescheduled && (
+                <button className="config-edit-btn" onClick={handleClearReschedule} title="Clear reschedule">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
+              )}
+              {showReschedule && (
+                <div className="reschedule-input-row">
+                  <input
+                    type="date"
+                    value={rescheduleDate}
+                    min={getTodayDate()}
+                    onChange={(e) => setRescheduleDate(e.target.value)}
+                    className="modal-input"
+                    autoFocus
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && rescheduleDate) handleReschedule();
+                      if (e.key === "Escape") {
+                        setShowReschedule(false);
+                        setRescheduleDate("");
+                      }
+                    }}
+                  />
+                  <button className="btn-save" onClick={handleReschedule} disabled={!rescheduleDate}>
+                    Save
+                  </button>
+                  <button className="btn-cancel" onClick={() => { setShowReschedule(false); setRescheduleDate(""); }}>
+                    Cancel
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="one-on-ones-add-note entrance-3">
             <div className="note-type-toggle">

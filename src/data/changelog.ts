@@ -5,7 +5,7 @@ export interface ChangelogEntry {
   changes: string[];
 }
 
-export const APP_VERSION = "1.3.0";
+export const APP_VERSION = "1.4.0";
 
 export const changelog: ChangelogEntry[] = [
   {
@@ -13,6 +13,22 @@ export const changelog: ChangelogEntry[] = [
     date: null,
     title: "Upcoming Changes",
     changes: [],
+  },
+  {
+    version: "1.4.0",
+    date: "2026-02-13",
+    title: "Pear Programming & 1-1 Rescheduling",
+    changes: [
+      "Pear Programming view - CRT terminal-themed pairing session tracker with retro green-screen aesthetic",
+      "Desktop folder icons for pairing partner selection with multi-partner support",
+      "Start pairing sessions with a topic, log notes in a shell-style scrollable terminal",
+      "Running session timer tracks pairing duration",
+      "Post-session wrap-up with optional summary and follow-up items that create backlog tasks",
+      "Session log with click-to-load viewing of past sessions",
+      "1-1 rescheduling - one-time override to move a 1-1 to a different day",
+      "Rescheduled badge and auto-clear after the override date passes",
+      "Fixed sit/stand timer showing 46m instead of 45m on first enable",
+    ],
   },
   {
     version: "1.3.0",

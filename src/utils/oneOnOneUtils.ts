@@ -23,6 +23,9 @@ export function isOneOnOneDay(config: OneOnOneConfig, dateStr: string): boolean 
 }
 
 export function getNextOneOnOneDate(config: OneOnOneConfig, fromDate: string): string {
+  if (config.nextOverrideDate && config.nextOverrideDate >= fromDate) {
+    return config.nextOverrideDate;
+  }
   const start = new Date(fromDate + "T12:00:00");
   for (let i = 0; i <= 14; i++) {
     const candidate = new Date(start);
@@ -33,4 +36,8 @@ export function getNextOneOnOneDate(config: OneOnOneConfig, fromDate: string): s
     }
   }
   return fromDate;
+}
+
+export function shouldClearOverride(config: OneOnOneConfig, today: string): boolean {
+  return !!config.nextOverrideDate && config.nextOverrideDate < today;
 }

@@ -716,6 +716,8 @@ pub struct OneOnOneConfig {
     pub cadence: String,
     #[serde(default, rename = "startDate")]
     pub start_date: String,
+    #[serde(default, skip_serializing_if = "Option::is_none", rename = "nextOverrideDate")]
+    pub next_override_date: Option<String>,
     #[serde(default, rename = "createdAt")]
     pub created_at: String,
 }
@@ -747,6 +749,45 @@ pub struct OneOnOneSession {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
+pub struct PairingConfig {
+    pub id: String,
+    #[serde(rename = "personName")]
+    pub person_name: String,
+    #[serde(default, rename = "createdAt")]
+    pub created_at: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+pub struct PairingSession {
+    pub id: String,
+    #[serde(rename = "configId")]
+    pub config_id: String,
+    #[serde(default)]
+    pub topic: String,
+    pub date: String,
+    #[serde(default)]
+    pub notes: String,
+    #[serde(default, rename = "completedAt", skip_serializing_if = "Option::is_none")]
+    pub completed_at: Option<String>,
+    #[serde(default, rename = "createdAt")]
+    pub created_at: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+pub struct PairingNote {
+    pub id: String,
+    #[serde(rename = "configId")]
+    pub config_id: String,
+    pub text: String,
+    #[serde(default, rename = "noteType", skip_serializing_if = "Option::is_none")]
+    pub note_type: Option<String>,
+    #[serde(default, rename = "sessionId", skip_serializing_if = "Option::is_none")]
+    pub session_id: Option<String>,
+    #[serde(default, rename = "createdAt")]
+    pub created_at: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct AppData {
     pub sections: Vec<Section>,
     pub notifications: NotificationSettings,
@@ -772,6 +813,12 @@ pub struct AppData {
     pub one_on_one_notes: Vec<OneOnOneNote>,
     #[serde(default, rename = "oneOnOneSessions", skip_serializing_if = "Vec::is_empty")]
     pub one_on_one_sessions: Vec<OneOnOneSession>,
+    #[serde(default, rename = "pairingConfigs", skip_serializing_if = "Vec::is_empty")]
+    pub pairing_configs: Vec<PairingConfig>,
+    #[serde(default, rename = "pairingSessions", skip_serializing_if = "Vec::is_empty")]
+    pub pairing_sessions: Vec<PairingSession>,
+    #[serde(default, rename = "pairingNotes", skip_serializing_if = "Vec::is_empty")]
+    pub pairing_notes: Vec<PairingNote>,
     #[serde(default = "default_theme")]
     pub theme: String,
     #[serde(default, rename = "darkMode")]

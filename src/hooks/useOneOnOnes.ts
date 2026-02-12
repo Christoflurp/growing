@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { useAppData } from "../context/AppDataContext";
 import {
   OneOnOneConfig,
@@ -9,9 +9,18 @@ import {
   DailyTask,
 } from "../types";
 import { getTodayDate } from "../utils/dateUtils";
+import { shouldClearOverride } from "../utils/oneOnOneUtils";
 
 export function useOneOnOnes() {
   const { data, saveData } = useAppData();
+
+  useEffect(() => {
+    if (!data) return;
+    const config = (data.oneOnOneConfigs || [])[0];
+    if (!config || !shouldClearOverride(config, getTodayDate())) return;
+    const updated = { ...config, nextOverrideDate: undefined };
+    saveData({ ...data, oneOnOneConfigs: [updated] });
+  }, [data?.oneOnOneConfigs]);
 
   const getConfigs = useCallback(() => {
     return data?.oneOnOneConfigs || [];
@@ -171,6 +180,22 @@ export function useOneOnOnes() {
     });
   }, [data, saveData]);
 
+  const rescheduleNextOneOnOne = useCallback(async (date: string) => {
+    if (!data) return;
+    const config = (data.oneOnOneConfigs || [])[0];
+    if (!config) return;
+    const updated = { ...config, nextOverrideDate: date };
+    await saveData({ ...data, oneOnOneConfigs: [updated] });
+  }, [data, saveData]);
+
+  const clearReschedule = useCallback(async () => {
+    if (!data) return;
+    const config = (data.oneOnOneConfigs || [])[0];
+    if (!config) return;
+    const updated = { ...config, nextOverrideDate: undefined };
+    await saveData({ ...data, oneOnOneConfigs: [updated] });
+  }, [data, saveData]);
+
   return {
     getConfigs,
     getConfig,
@@ -185,5 +210,7 @@ export function useOneOnOnes() {
     deleteNote,
     completeSession,
     scheduleNoteAsTask,
+    rescheduleNextOneOnOne,
+    clearReschedule,
   };
 }
