@@ -25,6 +25,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - "Rescheduled" badge when override is active
   - Auto-clears after the rescheduled date passes
   - Cadence stays anchored to original startDate
+- Pear emoji shortcut on Today dashboard to jump directly to the Pairing terminal
+- ATC toggle redesigned as phone emoji with red glow indicator when on-call
 
 ### Fixed
 

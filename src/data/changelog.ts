@@ -27,6 +27,8 @@ export const changelog: ChangelogEntry[] = [
       "Session log with click-to-load viewing of past sessions",
       "1-1 rescheduling - one-time override to move a 1-1 to a different day",
       "Rescheduled badge and auto-clear after the override date passes",
+      "Pear emoji shortcut on Today dashboard to jump to Pairing terminal",
+      "ATC toggle redesigned as phone emoji with red glow indicator when on-call",
       "Fixed sit/stand timer showing 46m instead of 45m on first enable",
     ],
   },
