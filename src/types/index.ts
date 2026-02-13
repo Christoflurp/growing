@@ -119,6 +119,7 @@ export interface AppData {
   activeTimer?: ActiveTimer;
   activeTimers?: ActiveTimer[];
   atcDays?: string[];
+  mcpServerEnabled?: boolean;
 }
 
 export type NavView = "today" | "tasks" | "goals" | "notes" | "bragdoc" | "curiosities" | "reviews" | "one-on-ones" | "pairing" | "settings";

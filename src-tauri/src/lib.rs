@@ -1,3 +1,7 @@
+#![allow(unexpected_cfgs)]
+
+mod mcp;
+
 use tauri::{
     AppHandle,
     Emitter,
@@ -411,7 +415,7 @@ fn open_album_in_music(album: String, artist: Option<String>) {
     }
 }
 
-fn get_data_dir(app: &AppHandle) -> PathBuf {
+fn get_data_dir(_app: &AppHandle) -> PathBuf {
     #[cfg(debug_assertions)]
     {
         let dev_dir = std::env::current_dir().unwrap_or_default().join("dev-data");
@@ -422,7 +426,7 @@ fn get_data_dir(app: &AppHandle) -> PathBuf {
     }
     #[cfg(not(debug_assertions))]
     {
-        app.path().app_local_data_dir().expect("Failed to get app data dir")
+        _app.path().app_local_data_dir().expect("Failed to get app data dir")
     }
 }
 
@@ -837,6 +841,8 @@ pub struct AppData {
     pub active_timer: Option<ActiveTimer>,
     #[serde(default, rename = "activeTimers", skip_serializing_if = "Vec::is_empty")]
     pub active_timers: Vec<ActiveTimer>,
+    #[serde(default, rename = "mcpServerEnabled")]
+    pub mcp_server_enabled: bool,
 }
 
 fn default_theme() -> String {
@@ -1211,6 +1217,27 @@ fn send_delayed_notification(title: String, body: String, delay_secs: u64, app: 
 }
 
 #[tauri::command]
+fn start_mcp_server(app: AppHandle) -> Result<String, String> {
+    let data_dir = get_data_dir(&app);
+    mcp::start_server(data_dir).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn stop_mcp_server() -> Result<(), String> {
+    mcp::stop_server().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn get_mcp_status() -> Result<bool, String> {
+    Ok(mcp::is_running())
+}
+
+#[tauri::command]
+fn register_mcp_with_claude_code(enable: bool) -> Result<(), String> {
+    mcp::register_with_claude_code(enable).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
 fn show_main_window(app: AppHandle) {
     if let Some(main) = app.get_webview_window("main") {
         main.show().unwrap();
@@ -1422,6 +1449,21 @@ pub fn run() {
             start_wake_listener(app.handle().clone());
             start_now_playing_listener(app.handle().clone());
 
+            let data_dir = get_data_dir(&app.handle());
+            let data_path_check = data_dir.join("data.json");
+            if data_path_check.exists() {
+                if let Ok(content) = fs::read_to_string(&data_path_check) {
+                    if let Ok(app_data) = serde_json::from_str::<AppData>(&content) {
+                        if app_data.mcp_server_enabled {
+                            match mcp::start_server(data_dir) {
+                                Ok(url) => eprintln!("MCP server started at {}", url),
+                                Err(e) => eprintln!("Failed to start MCP server: {}", e),
+                            }
+                        }
+                    }
+                }
+            }
+
             Ok(())
         })
         .on_window_event(|window, event| {
@@ -1451,6 +1493,10 @@ pub fn run() {
             toggle_love_track,
             open_artist_in_music,
             open_album_in_music,
+            start_mcp_server,
+            stop_mcp_server,
+            get_mcp_status,
+            register_mcp_with_claude_code,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

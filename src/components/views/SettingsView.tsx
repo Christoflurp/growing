@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { invoke } from "@tauri-apps/api/core";
 import { useAppData } from "../../context/AppDataContext";
 import { useNotificationPermission } from "../../hooks/useNotificationPermission";
 import { NotificationSettings } from "../../types";
@@ -54,7 +55,7 @@ export function SettingsView() {
       </header>
 
       <div className="settings-group">
-        <h2>Notification Schedule</h2>
+        <h2>Notifications</h2>
         <div className="setting-item">
           <div className="setting-info">
             <span className="setting-name">Enable notifications</span>
@@ -135,6 +136,24 @@ export function SettingsView() {
             </div>
           </>
         )}
+
+        <div className="setting-item">
+          <div className="setting-info">
+            <span className="setting-name">Permission</span>
+            <span className="setting-desc">
+              {notificationPermission === "granted"
+                ? "Granted"
+                : notificationPermission === "denied"
+                ? "Denied -- check System Settings"
+                : "Not yet requested"}
+            </span>
+          </div>
+          {notificationPermission !== "granted" && (
+            <button className="request-btn" onClick={requestPermission}>
+              Request
+            </button>
+          )}
+        </div>
       </div>
 
       <TimePickerModal
@@ -215,7 +234,80 @@ export function SettingsView() {
       </div>
 
       <div className="settings-group">
-        <h2>Startup</h2>
+        <h2>Features</h2>
+        <div className="setting-item">
+          <div className="setting-info">
+            <span className="setting-name">Eat the Frog</span>
+            <span className="setting-desc">Mark one task as your daily priority</span>
+          </div>
+          <button
+            className={`toggle ${data.frogEnabled !== false ? "on" : ""}`}
+            onClick={() => saveData({ ...data, frogEnabled: data.frogEnabled === false })}
+          >
+            <span className="toggle-knob" />
+          </button>
+        </div>
+        <div className="setting-item">
+          <div className="setting-info">
+            <span className="setting-name">Apple Music</span>
+            <span className="setting-desc">Now playing widget and transport controls</span>
+          </div>
+          <button
+            className={`toggle ${data.appleMusicEnabled !== false ? "on" : ""}`}
+            onClick={() => saveData({ ...data, appleMusicEnabled: data.appleMusicEnabled === false })}
+          >
+            <span className="toggle-knob" />
+          </button>
+        </div>
+        <div className="setting-item">
+          <div className="setting-info">
+            <span className="setting-name">MCP Server</span>
+            <span className="setting-desc">
+              {data.mcpServerEnabled
+                ? "Running on port 21517"
+                : "Expose app data to LLMs via MCP"}
+            </span>
+          </div>
+          <button
+            className={`toggle ${data.mcpServerEnabled ? "on" : ""}`}
+            onClick={async () => {
+              const enabling = !data.mcpServerEnabled;
+              try {
+                if (enabling) {
+                  await invoke("start_mcp_server");
+                  await invoke("register_mcp_with_claude_code", { enable: true });
+                } else {
+                  await invoke("stop_mcp_server");
+                  await invoke("register_mcp_with_claude_code", { enable: false });
+                }
+                await saveData({ ...data, mcpServerEnabled: enabling });
+              } catch (e) {
+                console.error("MCP toggle failed:", e);
+              }
+            }}
+          >
+            <span className="toggle-knob" />
+          </button>
+        </div>
+        {data.mcpServerEnabled && (
+          <div className="mcp-tools-list">
+            <span className="mcp-tools-label">Available tools</span>
+            <div className="mcp-tools-grid">
+              <span className="mcp-tool">get_tasks</span>
+              <span className="mcp-tool">add_task</span>
+              <span className="mcp-tool">complete_task</span>
+              <span className="mcp-tool">get_goals</span>
+              <span className="mcp-tool">add_note</span>
+              <span className="mcp-tool">add_review</span>
+              <span className="mcp-tool">add_brag_doc</span>
+              <span className="mcp-tool">get_weekly_recap</span>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="settings-group">
+        <h2>System</h2>
         <div className="setting-item">
           <div className="setting-info">
             <span className="setting-name">Launch at login</span>
@@ -230,54 +322,9 @@ export function SettingsView() {
         </div>
         <div className="setting-item">
           <div className="setting-info">
-            <span className="setting-name">Notifications</span>
-            <span className="setting-desc">
-              {notificationPermission === "granted"
-                ? "Permission granted"
-                : notificationPermission === "denied"
-                ? "Permission denied"
-                : "Permission unknown"}
-            </span>
-          </div>
-          {notificationPermission !== "granted" && (
-            <button className="request-btn" onClick={requestPermission}>
-              Request
-            </button>
-          )}
-        </div>
-        <div className="setting-item">
-          <div className="setting-info">
             <span className="setting-name">Global shortcut</span>
             <span className="setting-desc">Cmd+Shift+G to show window</span>
           </div>
-        </div>
-      </div>
-
-      <div className="settings-group">
-        <h2>Features</h2>
-        <div className="setting-item">
-          <div className="setting-info">
-            <span className="setting-name">Apple Music integration</span>
-            <span className="setting-desc">Show now playing bar below navigation</span>
-          </div>
-          <button
-            className={`toggle ${data.appleMusicEnabled !== false ? "on" : ""}`}
-            onClick={() => saveData({ ...data, appleMusicEnabled: data.appleMusicEnabled === false })}
-          >
-            <span className="toggle-knob" />
-          </button>
-        </div>
-        <div className="setting-item">
-          <div className="setting-info">
-            <span className="setting-name">Eat the Frog</span>
-            <span className="setting-desc">Mark one task as your daily priority</span>
-          </div>
-          <button
-            className={`toggle ${data.frogEnabled !== false ? "on" : ""}`}
-            onClick={() => saveData({ ...data, frogEnabled: data.frogEnabled === false })}
-          >
-            <span className="toggle-knob" />
-          </button>
         </div>
       </div>
     </div>

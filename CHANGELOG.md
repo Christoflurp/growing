@@ -27,6 +27,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Cadence stays anchored to original startDate
 - Pear emoji shortcut on Today dashboard to jump directly to the Pairing terminal
 - ATC toggle redesigned as phone emoji with red glow indicator when on-call
+- Built-in MCP server for LLM integration
+  - HTTP JSON-RPC server on port 21517 with 8 tools
+  - Toggle in Settings to start/stop and auto-register with Claude Code
+  - Tools: get_tasks, add_task, complete_task, get_goals, add_note, add_review, add_brag_doc, get_weekly_recap
+  - Auto-starts on app launch when enabled
 
 ### Fixed
 

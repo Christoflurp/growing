@@ -29,6 +29,8 @@ export const changelog: ChangelogEntry[] = [
       "Rescheduled badge and auto-clear after the override date passes",
       "Pear emoji shortcut on Today dashboard to jump to Pairing terminal",
       "ATC toggle redesigned as phone emoji with red glow indicator when on-call",
+      "MCP Server - expose app data to LLMs with 8 tools (tasks, goals, notes, reviews, brag docs), toggle in Settings",
+      "Auto-registers with Claude Code when enabled",
       "Fixed sit/stand timer showing 46m instead of 45m on first enable",
     ],
   },

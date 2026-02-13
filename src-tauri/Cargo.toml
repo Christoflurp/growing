@@ -32,6 +32,9 @@ uuid = { version = "1", features = ["v4"] }
 base64 = "0.22"
 lazy_static = "1.4"
 tauri-plugin-single-instance = "2.3.7"
+axum = "0.8"
+tokio = { version = "1", features = ["full"] }
+dirs = "6"
 
 # macOS system event listeners
 [target.'cfg(target_os = "macos")'.dependencies]

@@ -133,7 +133,9 @@ body {
   display: flex;
   align-items: center;
   gap: 0;
-  position: relative;
+  position: absolute;
+  left: 16px;
+  z-index: 1;
 }
 
 .nav-menu-items {
@@ -974,6 +976,36 @@ body {
   font-size: 13px;
   color: var(--text-muted);
   margin-top: 2px;
+}
+
+.mcp-tools-list {
+  padding: 8px 12px 12px;
+  margin: -4px 0 4px;
+}
+
+.mcp-tools-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  display: block;
+  margin-bottom: 8px;
+}
+
+.mcp-tools-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.mcp-tool {
+  font-size: 12px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  padding: 3px 8px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
 }
 
 .setting-controls {
@@ -5369,17 +5401,34 @@ select:disabled {
   background: var(--bg-sidebar);
   padding: 8px 16px;
   align-items: center;
-  gap: 16px;
   flex-shrink: 0;
   border-bottom: 1px solid var(--border);
+  position: relative;
 }
 
 .tab-nav-container {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 16px;
-  flex: 1;
+  width: 100%;
+}
+
+.tab-nav-left,
+.tab-nav-right {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tab-nav-left {
+  right: 100%;
+  margin-right: 8px;
+}
+
+.tab-nav-right {
+  left: 100%;
+  margin-left: 8px;
 }
 
 .tab-nav-items {
@@ -5389,6 +5438,7 @@ select:disabled {
   background: var(--bg-secondary);
   padding: 4px;
   border-radius: var(--radius-lg);
+  position: relative;
 }
 
 .tab-nav-item {
