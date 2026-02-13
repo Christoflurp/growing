@@ -32,6 +32,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Toggle in Settings to start/stop and auto-register with Claude Code
   - Tools: get_tasks, add_task, complete_task, get_goals, add_note, add_review, add_brag_doc, get_weekly_recap
   - Auto-starts on app launch when enabled
+- Weekly Recap view for reviewing externally-generated weekly field notes
+  - Field notebook aesthetic with ruled paper, margin line, and page vignette
+  - Configure recap folder path in Settings, scans for *-W*.json files
+  - Navigate between weeks with prev/next arrows
+  - Header with date range title and "Weekly Review" label
+  - Narrative section with expand/collapse for long text
+  - Code field count tallies (shipped, opened, reviewed, diff) with collapsible PR lists and stacks
+  - Active projects with role stamps and collapsible experiments/flags
+  - Conversations section with Slack project summaries, technical discussions, and kudos
+  - Time spent breakdown as full-width tally grid with color-coded category badges
+  - Scratch notes as offset research cards
+  - Growth assessment 2x2 grid with stamped ratings (strong/moderate/weak/mixed)
+  - Collapsible sections for all detail views
+  - Typography: Crimson Pro headers, Cormorant Garamond narrative, Libre Baskerville body, Space Mono data
+  - Full dark mode support with warm leather/amber palette
 
 ### Fixed
 

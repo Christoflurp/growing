@@ -36,8 +36,9 @@ npm run tauri build      # Build for production
 - **Quick Add Dropdown** - + button opens menu to add tasks, timers, notes, brag docs, curiosities, or reviews
 - **Pear Programming** - CRT terminal-themed pairing session tracker with shell-style input and session timer
 - **MCP Server** - Built-in HTTP MCP server exposing app data to LLMs (toggleable in Settings, auto-registers with Claude Code)
+- **Weekly Recap** - Field notebook-themed view for externally-generated weekly review JSON files with collapsible sections
 
-### Views (11 tabs)
+### Views (12 tabs)
 
 1. **Today** - Dashboard with Apple Music widget, today's tasks, reviews count, and quick navigation
 2. **Tasks** - Daily task management with date navigation, carry-forward, and defer-to-backlog
@@ -49,7 +50,8 @@ npm run tauri build      # Build for production
 8. **Reviews** - Log PR reviews with auto-parsed GitHub links and daily counts
 9. **1-1s** - Track manager meeting notes with session archiving and action scheduling
 10. **Pairing** - CRT terminal-themed pairing session tracker with per-partner folders, shell-style note input, session timer, and follow-up task creation
-11. **Settings** - Theme, permissions, launch-at-login, notifications, MCP server
+11. **Weekly Recap** - Field notebook-themed weekly review viewer with ruled-paper aesthetic, code tallies, project cards, meeting breakdowns, and growth assessment stamps
+12. **Settings** - Theme, permissions, launch-at-login, notifications, MCP server, weekly recap folder
 
 ### Theming
 
@@ -117,6 +119,8 @@ interface AppData {
   pairingSessions?: PairingSession[];
   pairingNotes?: PairingNote[];
   mcpServerEnabled?: boolean;          // Enable built-in MCP server on port 21517
+  weeklyRecapEnabled?: boolean;        // Enable weekly recap view
+  weeklyRecapPath?: string;            // Filesystem path to folder containing recap JSON files
 }
 
 type TaskCategory = "work" | "personal";
@@ -253,6 +257,8 @@ interface PairingNote {
 | `stop_mcp_server` | Stop the MCP HTTP server |
 | `get_mcp_status` | Returns whether MCP server is running |
 | `register_mcp_with_claude_code` | Add/remove MCP config from `~/.claude/settings.json` |
+| `list_weekly_recaps` | Scan directory for *-W*.json files, return sorted list |
+| `load_weekly_recap` | Read and parse a specific recap JSON file |
 
 ## Development Notes
 

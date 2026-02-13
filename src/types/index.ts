@@ -120,9 +120,11 @@ export interface AppData {
   activeTimers?: ActiveTimer[];
   atcDays?: string[];
   mcpServerEnabled?: boolean;
+  weeklyRecapEnabled?: boolean;
+  weeklyRecapPath?: string;
 }
 
-export type NavView = "today" | "tasks" | "goals" | "notes" | "bragdoc" | "curiosities" | "reviews" | "one-on-ones" | "pairing" | "settings";
+export type NavView = "today" | "tasks" | "goals" | "notes" | "bragdoc" | "curiosities" | "reviews" | "one-on-ones" | "pairing" | "weekly-recap" | "settings";
 
 export interface Curiosity {
   id: string;
@@ -215,4 +217,203 @@ export interface NowPlayingInfo {
   position?: number;
   artwork?: string;
   is_loved?: boolean;
+}
+
+export interface WeeklyRecapMeta {
+  week: string;
+  year: number;
+  weekNumber: number;
+  dateRange: {
+    start: string;
+    end: string;
+    display: string;
+  };
+  generatedAt: string;
+}
+
+export interface WeeklyRecapLink {
+  title: string;
+  url: string;
+}
+
+export interface WeeklyRecapPrShipped {
+  number: number;
+  title: string;
+  url: string;
+  repo: string;
+  author: string;
+  additions: number;
+  deletions: number;
+  changedFiles: number;
+  date: string;
+  state: "merged";
+}
+
+export interface WeeklyRecapPrOpened {
+  number: number;
+  title: string;
+  url: string;
+  repo: string;
+  author: string;
+  additions: number;
+  deletions: number;
+  changedFiles: number;
+}
+
+export interface WeeklyRecapPrReviewed {
+  number: number;
+  title: string;
+  url: string;
+  repo: string;
+  author: string;
+}
+
+export interface WeeklyRecapCodeStats {
+  shipped: number;
+  opened: number;
+  reviewed: number;
+  commented: number;
+  totalAdditions: number;
+  totalDeletions: number;
+}
+
+export interface WeeklyRecapStack {
+  rootBranch: string;
+  prUrl: string;
+  depth: number;
+  needsRestack: boolean;
+}
+
+export interface WeeklyRecapOpenPR {
+  number: number;
+  title: string;
+  url: string;
+  repo: string;
+  state: "draft" | "open";
+  created: string;
+}
+
+export interface WeeklyRecapCode {
+  prsShipped: WeeklyRecapPrShipped[];
+  prsOpened: WeeklyRecapPrOpened[];
+  prsReviewed: WeeklyRecapPrReviewed[];
+  prsCommented: WeeklyRecapPrReviewed[];
+  stats: WeeklyRecapCodeStats;
+  stacks: WeeklyRecapStack[];
+  allOpenPRs: WeeklyRecapOpenPR[];
+}
+
+export interface WeeklyRecapSlackProject {
+  name: string;
+  participants: string[];
+  channels: string[];
+  activities: string[];
+  links: WeeklyRecapLink[];
+}
+
+export interface WeeklyRecapTechnicalDiscussion {
+  topic: string;
+  participants: string[];
+  summary: string;
+}
+
+export interface WeeklyRecapKudosEntry {
+  person: string;
+  context: string;
+}
+
+export interface WeeklyRecapSlack {
+  projects: WeeklyRecapSlackProject[];
+  technical: WeeklyRecapTechnicalDiscussion[];
+  operational: string[];
+  process: string[];
+  nonWork: string[];
+  distractions: string[];
+  kudos: {
+    given: WeeklyRecapKudosEntry[];
+    received: WeeklyRecapKudosEntry[];
+  };
+  links: WeeklyRecapLink[];
+}
+
+export interface WeeklyRecapProject {
+  name: string;
+  url: string;
+  role: "Champion" | "Contributor";
+  phase: string;
+  status: string;
+}
+
+export interface WeeklyRecapExperiment {
+  handle: string;
+  url: string;
+  type: "experiment" | "flag";
+  state: string;
+  rollout: number | null;
+  notes: string;
+}
+
+export interface WeeklyRecapProjects {
+  active: WeeklyRecapProject[];
+  experiments: WeeklyRecapExperiment[];
+  teamActivity: string[];
+  updates: string[];
+}
+
+export type MeetingCategory = "1:1" | "planning" | "pairing" | "social" | "other";
+
+export interface WeeklyRecapMeeting {
+  time: string;
+  title: string;
+  category: MeetingCategory;
+  attendees: string[];
+  durationMinutes: number;
+}
+
+export interface WeeklyRecapMeetingBreakdown {
+  total: { hours: number; count: number };
+  byCategory: { category: MeetingCategory; hours: number; count: number }[];
+}
+
+export interface WeeklyRecapActivity {
+  meetings: WeeklyRecapMeeting[];
+  meetingBreakdown: WeeklyRecapMeetingBreakdown;
+}
+
+export interface WeeklyRecapScratchNote {
+  topic: string;
+  sources: string[];
+  summary: string;
+}
+
+export type GrowthRating = "strong" | "moderate" | "weak" | "mixed";
+
+export interface GrowthSignal {
+  rating: GrowthRating;
+  evidence: string[];
+  summary: string;
+}
+
+export interface WeeklyRecapGrowth {
+  incrementalDelivery: GrowthSignal;
+  selfConfidence: GrowthSignal;
+  systemsThinking: GrowthSignal;
+  execution: GrowthSignal;
+}
+
+export interface WeeklyRecap {
+  meta: WeeklyRecapMeta;
+  narrative: string;
+  code: WeeklyRecapCode;
+  slack: WeeklyRecapSlack;
+  projects: WeeklyRecapProjects;
+  activity: WeeklyRecapActivity;
+  scratchNotes: WeeklyRecapScratchNote[];
+  topics: string[];
+  growth: WeeklyRecapGrowth;
+}
+
+export interface WeeklyRecapListItem {
+  week: string;
+  filename: string;
 }

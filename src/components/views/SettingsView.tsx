@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { open } from "@tauri-apps/plugin-dialog";
 import { useAppData } from "../../context/AppDataContext";
 import { useNotificationPermission } from "../../hooks/useNotificationPermission";
 import { NotificationSettings } from "../../types";
@@ -302,6 +303,49 @@ export function SettingsView() {
               <span className="mcp-tool">add_brag_doc</span>
               <span className="mcp-tool">get_weekly_recap</span>
             </div>
+          </div>
+        )}
+        <div className="setting-item">
+          <div className="setting-info">
+            <span className="setting-name">Weekly Recap</span>
+            <span className="setting-desc">
+              {data.weeklyRecapEnabled
+                ? data.weeklyRecapPath
+                  ? `Reading from ${data.weeklyRecapPath.split("/").pop()}/`
+                  : "Enabled -- select a folder"
+                : "View weekly field notes from JSON files"}
+            </span>
+          </div>
+          <button
+            className={`toggle ${data.weeklyRecapEnabled ? "on" : ""}`}
+            onClick={() => saveData({ ...data, weeklyRecapEnabled: !data.weeklyRecapEnabled })}
+          >
+            <span className="toggle-knob" />
+          </button>
+        </div>
+        {data.weeklyRecapEnabled && (
+          <div className="setting-item">
+            <div className="setting-info">
+              <span className="setting-name">Recap folder</span>
+              <span className="setting-desc recap-path-desc">
+                {data.weeklyRecapPath || "No folder selected"}
+              </span>
+            </div>
+            <button
+              className="browse-btn"
+              onClick={async () => {
+                const selected = await open({
+                  directory: true,
+                  multiple: false,
+                  title: "Select Weekly Recap folder",
+                });
+                if (selected && typeof selected === "string") {
+                  await saveData({ ...data, weeklyRecapPath: selected });
+                }
+              }}
+            >
+              Browse
+            </button>
           </div>
         )}
       </div>

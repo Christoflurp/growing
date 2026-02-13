@@ -843,6 +843,10 @@ pub struct AppData {
     pub active_timers: Vec<ActiveTimer>,
     #[serde(default, rename = "mcpServerEnabled")]
     pub mcp_server_enabled: bool,
+    #[serde(default, rename = "weeklyRecapEnabled")]
+    pub weekly_recap_enabled: bool,
+    #[serde(default, rename = "weeklyRecapPath", skip_serializing_if = "Option::is_none")]
+    pub weekly_recap_path: Option<String>,
 }
 
 fn default_theme() -> String {
@@ -1237,6 +1241,48 @@ fn register_mcp_with_claude_code(enable: bool) -> Result<(), String> {
     mcp::register_with_claude_code(enable).map_err(|e| e.to_string())
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct WeeklyRecapListItem {
+    pub week: String,
+    pub filename: String,
+}
+
+#[tauri::command]
+fn list_weekly_recaps(path: String) -> Result<Vec<WeeklyRecapListItem>, String> {
+    let dir = PathBuf::from(&path);
+    if !dir.is_dir() {
+        return Err(format!("Not a directory: {}", path));
+    }
+
+    let mut items: Vec<WeeklyRecapListItem> = Vec::new();
+    let entries = fs::read_dir(&dir)
+        .map_err(|e| format!("Failed to read directory: {}", e))?;
+
+    for entry in entries.flatten() {
+        let name = entry.file_name().to_string_lossy().to_string();
+        if name.ends_with(".json") && name.contains("-W") {
+            if let Some(week) = name.strip_suffix(".json") {
+                items.push(WeeklyRecapListItem {
+                    week: week.to_string(),
+                    filename: name,
+                });
+            }
+        }
+    }
+
+    items.sort_by(|a, b| b.week.cmp(&a.week));
+    Ok(items)
+}
+
+#[tauri::command]
+fn load_weekly_recap(path: String, filename: String) -> Result<serde_json::Value, String> {
+    let file_path = PathBuf::from(&path).join(&filename);
+    let content = fs::read_to_string(&file_path)
+        .map_err(|e| format!("Failed to read recap file: {}", e))?;
+    serde_json::from_str(&content)
+        .map_err(|e| format!("Failed to parse recap JSON: {}", e))
+}
+
 #[tauri::command]
 fn show_main_window(app: AppHandle) {
     if let Some(main) = app.get_webview_window("main") {
@@ -1497,6 +1543,8 @@ pub fn run() {
             stop_mcp_server,
             get_mcp_status,
             register_mcp_with_claude_code,
+            list_weekly_recaps,
+            load_weekly_recap,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

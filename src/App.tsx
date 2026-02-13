@@ -43,6 +43,7 @@ import { BragDocModal } from "./components/shared/BragDocModal";
 import { OneOnOneNoteModal } from "./components/shared/OneOnOneNoteModal";
 import { OneOnOnesView } from "./components/views/OneOnOnesView";
 import { PairingView } from "./components/views/PairingView";
+import { WeeklyRecapView } from "./components/views/WeeklyRecapView";
 import { NavView, Todo, NowPlayingInfo, Curiosity, Review, TaskCategory, DailyTask, BragDocEntry, OneOnOneNoteType } from "./types";
 import { useOneOnOnes } from "./hooks/useOneOnOnes";
 import { isOneOnOneDay } from "./utils/oneOnOneUtils";
@@ -555,6 +556,8 @@ function AppContent({ alertOverlay, onDismissAlert, nowPlaying, onRefreshNowPlay
         )}
 
         {activeView === "pairing" && <PairingView />}
+
+        {activeView === "weekly-recap" && <WeeklyRecapView />}
 
         {activeView === "settings" && <SettingsView />}
       </main>
