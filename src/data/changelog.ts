@@ -5,7 +5,7 @@ export interface ChangelogEntry {
   changes: string[];
 }
 
-export const APP_VERSION = "1.5.0";
+export const APP_VERSION = "1.5.1";
 
 export const changelog: ChangelogEntry[] = [
   {
@@ -13,6 +13,23 @@ export const changelog: ChangelogEntry[] = [
     date: null,
     title: "Upcoming Changes",
     changes: [],
+  },
+  {
+    version: "1.5.1",
+    date: "2026-03-13",
+    title: "Moleskine Notebook Redesign",
+    changes: [
+      "Scratches redesigned as an interactive moleskine notebook on a wooden desk",
+      "Closed notebook with leather texture, elastic strap, and debossed label — click to open",
+      "3D cover-flip animation opens to a two-page spread with center spine",
+      "Left page shows table-of-contents index with dotted leaders and month groupings",
+      "Right page displays scratch content with CSS column-based pagination — no scrolling",
+      "Page-turn animation with 3D perspective rotation when navigating between spreads",
+      "Desk clutter: coffee mug, pencil, headphones, paper clip, and sticky note SVGs",
+      "Wood-grain desk surface with vignette lighting and noise texture",
+      "Indie Flower handwriting font for scratch content and index entries",
+      "Ruled-line grid aligned to text line-height for on-the-line writing",
+    ],
   },
   {
     version: "1.5.0",

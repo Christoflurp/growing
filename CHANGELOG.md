@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.1] - 2026-03-13
+
+### Changed
+
+- Scratches view completely redesigned as an interactive moleskine notebook
+  - Closed notebook sits on a wooden desk with leather texture, elastic strap, and debossed label
+  - Click-to-open with 3D cover-flip animation revealing a two-page spread
+  - Index page (left) with table-of-contents layout, dotted leaders, and month groupings
+  - Content page (right) uses CSS column pagination — fixed pages, no scrolling
+  - Page-turn animation with 3D perspective rotation between spreads
+  - Indie Flower handwriting font replaces Caveat for a scratchy-but-readable feel
+  - Ruled lines aligned to text line-height so writing sits on the lines
+  - Desk surface with wood-grain gradient, noise texture, and edge vignette
+  - Desk clutter SVGs: coffee mug, pencil, headphones, paper clip, sticky note
+
+### Removed
+
+- Caveat font (replaced by Indie Flower)
+- Graph-paper grid background (replaced by moleskine notebook)
+
 ## [1.5.0] - 2026-03-13
 
 ### Added
