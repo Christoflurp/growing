@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 
-export type NavView = "today" | "tasks" | "goals" | "notes" | "bragdoc" | "curiosities" | "reviews" | "one-on-ones" | "pairing" | "weekly-recap" | "settings";
+export type NavView = "today" | "tasks" | "goals" | "scratches" | "notes" | "bragdoc" | "curiosities" | "reviews" | "one-on-ones" | "pairing" | "weekly-recap" | "settings";
 
 interface NavItem {
   view: NavView;
@@ -71,17 +71,6 @@ const planGroup: NavGroup = {
         </svg>
       ),
     },
-    {
-      view: "pairing",
-      title: "Pairing",
-      icon: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-          <path d="M12 2C9.5 2 8 4.5 8 7c0 3 2 5 4 9 2-4 4-6 4-9 0-2.5-1.5-5-4-5z" />
-          <path d="M12 16v6" />
-          <path d="M9 22c1-.5 2-1 3-1s2 .5 3 1" />
-        </svg>
-      ),
-    },
   ],
 };
 
@@ -97,8 +86,8 @@ const captureGroup: NavGroup = {
   ),
   items: [
     {
-      view: "notes",
-      title: "Notes",
+      view: "scratches",
+      title: "Scratches",
       icon: (
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
           <path d="M14 3v4a1 1 0 001 1h4" />
@@ -106,6 +95,16 @@ const captureGroup: NavGroup = {
           <line x1="9" y1="9" x2="10" y2="9" />
           <line x1="9" y1="13" x2="15" y2="13" />
           <line x1="9" y1="17" x2="15" y2="17" />
+        </svg>
+      ),
+    },
+    {
+      view: "notes",
+      title: "Notes",
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <path d="M14 3v4a1 1 0 001 1h4" />
+          <path d="M17 21H7a2 2 0 01-2-2V5a2 2 0 012-2h7l5 5v11a2 2 0 01-2 2z" />
         </svg>
       ),
     },
@@ -126,6 +125,17 @@ const captureGroup: NavGroup = {
           <circle cx="12" cy="12" r="10" />
           <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" />
           <line x1="12" y1="17" x2="12.01" y2="17" />
+        </svg>
+      ),
+    },
+    {
+      view: "pairing",
+      title: "Pairing",
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <path d="M12 2C9.5 2 8 4.5 8 7c0 3 2 5 4 9 2-4 4-6 4-9 0-2.5-1.5-5-4-5z" />
+          <path d="M12 16v6" />
+          <path d="M9 22c1-.5 2-1 3-1s2 .5 3 1" />
         </svg>
       ),
     },

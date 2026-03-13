@@ -5,7 +5,7 @@ export interface ChangelogEntry {
   changes: string[];
 }
 
-export const APP_VERSION = "1.4.0";
+export const APP_VERSION = "1.5.0";
 
 export const changelog: ChangelogEntry[] = [
   {
@@ -13,6 +13,24 @@ export const changelog: ChangelogEntry[] = [
     date: null,
     title: "Upcoming Changes",
     changes: [],
+  },
+  {
+    version: "1.5.0",
+    date: "2026-03-13",
+    title: "Scratches, Questions & Navigation",
+    changes: [
+      "Scratches view — browse markdown scratch notes from a local folder with handwritten Caveat font and graph-paper aesthetic",
+      "Scratches folders grouped by month, searchable, with full markdown rendering (headers, lists, code blocks, blockquotes)",
+      "Scratches toggle and folder picker in Settings (same pattern as Weekly Recap)",
+      "Pencil shortcut on Today dashboard to jump to Scratches",
+      "Questions scratch pad — persistent markdown-supported notepad accessible from Today page widget",
+      "Questions replace the curiosity widget on Today dashboard, with save-as-note support",
+      "Moved Pairing from Plan to Capture navigation group",
+      "Dev mode badge — red DEV indicator in top-right corner during development builds",
+      "Fixed Graphite PR links not parsing (now supports both app.graphite.com and app.graphite.dev)",
+      "Fixed rescheduled 1-1 not updating the Today dashboard indicator",
+      "Fixed tasks added on a future date being scheduled to today instead",
+    ],
   },
   {
     version: "1.4.0",

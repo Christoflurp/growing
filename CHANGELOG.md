@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-03-13
+
+### Added
+
+- Scratches view for browsing filesystem-backed markdown scratch notes
+  - Reads date-prefixed folders from a configurable local directory
+  - Folders grouped by month with search filtering
+  - Single-file folders open directly; multi-file folders show file list
+  - Full markdown rendering: headers, lists, code blocks, blockquotes, inline formatting, links
+  - Graph-paper background with handwritten Caveat font for a true scratch-pad feel
+  - Monospace font preserved for code blocks
+  - Full dark mode support
+  - Toggle and folder picker in Settings (mirrors Weekly Recap pattern)
+  - Pencil emoji shortcut on Today dashboard for quick access
+- Questions scratch pad on Today page
+  - Persistent markdown-supported notepad replaces the curiosity widget
+  - Click to open modal, write questions in markdown, auto-persists
+  - Save as Note button copies content to quick notes
+  - Widget shows question count on Today dashboard
+- Dev mode indicator — red "DEV" badge in top-right corner, only visible in development builds
+- Moved Pairing from Plan to Capture navigation group
+
+### Fixed
+
+- Graphite PR links no longer parsed — updated regex to match both `app.graphite.com` and `app.graphite.dev`
+- Rescheduled 1-1 not reflected on Today dashboard — now uses `getNextOneOnOneDate()` which respects `nextOverrideDate`
+- Tasks added while viewing a future date now correctly schedule to that date instead of today
+
 ## [1.4.0] - 2026-02-13
 
 ### Added

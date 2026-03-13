@@ -44,9 +44,11 @@ import { OneOnOneNoteModal } from "./components/shared/OneOnOneNoteModal";
 import { OneOnOnesView } from "./components/views/OneOnOnesView";
 import { PairingView } from "./components/views/PairingView";
 import { WeeklyRecapView } from "./components/views/WeeklyRecapView";
+import { ScratchesView } from "./components/views/ScratchesView";
+import { QuestionsModal } from "./components/shared/QuestionsModal";
 import { NavView, Todo, NowPlayingInfo, Curiosity, Review, TaskCategory, DailyTask, BragDocEntry, OneOnOneNoteType } from "./types";
 import { useOneOnOnes } from "./hooks/useOneOnOnes";
-import { isOneOnOneDay } from "./utils/oneOnOneUtils";
+import { getNextOneOnOneDate } from "./utils/oneOnOneUtils";
 import { getTodayDate } from "./utils/dateUtils";
 import { parsePrLink } from "./hooks/useReviews";
 import { formatDateHeader } from "./utils/formatUtils";
@@ -141,6 +143,7 @@ function AppContent({ alertOverlay, onDismissAlert, nowPlaying, onRefreshNowPlay
   const [timerModalTaskId, setTimerModalTaskId] = useState<string | undefined>();
   const [timerModalTaskName, setTimerModalTaskName] = useState<string | undefined>();
   const [showCuriosityModal, setShowCuriosityModal] = useState(false);
+  const [showQuestionsModal, setShowQuestionsModal] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [showBragDocModal, setShowBragDocModal] = useState(false);
@@ -313,7 +316,8 @@ function AppContent({ alertOverlay, onDismissAlert, nowPlaying, onRefreshNowPlay
   const isOneOnOneDayToday = useCallback(() => {
     const config = getOneOnOneConfig();
     if (!config) return false;
-    return isOneOnOneDay(config, getTodayDate());
+    const today = getTodayDate();
+    return getNextOneOnOneDate(config, today) === today;
   }, [getOneOnOneConfig]);
 
   const getOneOnOnePendingCount = useCallback(() => {
@@ -475,6 +479,7 @@ function AppContent({ alertOverlay, onDismissAlert, nowPlaying, onRefreshNowPlay
 
   return (
     <div className="app">
+      {import.meta.env.DEV && <div className="dev-mode-badge">DEV</div>}
       <Navigation
         activeView={activeView}
         onViewChange={setActiveView}
@@ -526,7 +531,7 @@ function AppContent({ alertOverlay, onDismissAlert, nowPlaying, onRefreshNowPlay
 
       <main className="main-content">
         {activeView === "today" && (
-          <TodayView currentTime={currentTime} onNavigate={setActiveView} onStartTaskTimer={openTaskTimer} onAddCuriosity={() => setShowCuriosityModal(true)} todayReviewCount={getTodayReviewCount()} nowPlaying={nowPlaying} onRefreshNowPlaying={onRefreshNowPlaying} isOneOnOneDay={isOneOnOneDayToday()} oneOnOnePendingCount={getOneOnOnePendingCount()} />
+          <TodayView currentTime={currentTime} onNavigate={setActiveView} onStartTaskTimer={openTaskTimer} onOpenQuestions={() => setShowQuestionsModal(true)} todayReviewCount={getTodayReviewCount()} nowPlaying={nowPlaying} onRefreshNowPlaying={onRefreshNowPlaying} isOneOnOneDay={isOneOnOneDayToday()} oneOnOnePendingCount={getOneOnOnePendingCount()} />
         )}
 
         {activeView === "tasks" && (
@@ -540,6 +545,8 @@ function AppContent({ alertOverlay, onDismissAlert, nowPlaying, onRefreshNowPlay
         )}
 
         {activeView === "goals" && <GoalsView />}
+
+        {activeView === "scratches" && <ScratchesView />}
 
         {activeView === "notes" && (
           <NotesView onShowQuickNote={() => setShowQuickNote(true)} />
@@ -561,6 +568,11 @@ function AppContent({ alertOverlay, onDismissAlert, nowPlaying, onRefreshNowPlay
 
         {activeView === "settings" && <SettingsView />}
       </main>
+
+      <QuestionsModal
+        show={showQuestionsModal}
+        onClose={() => setShowQuestionsModal(false)}
+      />
 
       <QuickNoteModal
         show={showQuickNote}

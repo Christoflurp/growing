@@ -20,7 +20,7 @@ export function parsePrLink(url: string): ParsedPrLink {
     return { title: `[${org}/${repo}#${prNumber}]`, source: "github", isValid: true, prKey };
   }
 
-  const graphiteMatch = cleanUrl.match(/app\.graphite\.com\/github\/pr\/([^/]+)\/([^/]+)\/(\d+)/);
+  const graphiteMatch = cleanUrl.match(/app\.graphite\.(?:com|dev)\/github\/pr\/([^/]+)\/([^/]+)\/(\d+)/);
   if (graphiteMatch) {
     const [, org, repo, prNumber] = graphiteMatch;
     const prKey = `${org}/${repo}#${prNumber}`.toLowerCase();

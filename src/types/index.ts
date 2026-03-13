@@ -122,9 +122,12 @@ export interface AppData {
   mcpServerEnabled?: boolean;
   weeklyRecapEnabled?: boolean;
   weeklyRecapPath?: string;
+  scratchesEnabled?: boolean;
+  scratchesPath?: string;
+  questionsText?: string;
 }
 
-export type NavView = "today" | "tasks" | "goals" | "notes" | "bragdoc" | "curiosities" | "reviews" | "one-on-ones" | "pairing" | "weekly-recap" | "settings";
+export type NavView = "today" | "tasks" | "goals" | "scratches" | "notes" | "bragdoc" | "curiosities" | "reviews" | "one-on-ones" | "pairing" | "weekly-recap" | "settings";
 
 export interface Curiosity {
   id: string;
@@ -416,4 +419,12 @@ export interface WeeklyRecap {
 export interface WeeklyRecapListItem {
   week: string;
   filename: string;
+}
+
+export interface ScratchFolder {
+  name: string;
+  date: string;
+  title: string;
+  files: string[];
+  modified: string;
 }

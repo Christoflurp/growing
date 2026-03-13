@@ -76,22 +76,22 @@ export function useTasks() {
     [data]
   );
 
-  const addTask = useCallback(async () => {
+  const addTask = useCallback(async (targetDate?: string) => {
     if (!data || !taskText.trim()) return;
-    const today = getTodayDate();
+    const date = targetDate || getTodayDate();
     const newTask: DailyTask = {
       id: crypto.randomUUID(),
       text: taskText.trim(),
       description: taskDescription.trim(),
       goalId: taskGoalId || undefined,
       completed: false,
-      date: today,
+      date,
       order: 0,
       isFrog: taskIsFrog || undefined,
       category: taskCategory,
     };
     const updatedTasks = (data.dailyTasks || []).map((task) => {
-      if (task.date !== today) return task;
+      if (task.date !== date) return task;
       const updates: Partial<DailyTask> = {};
       if (task.order !== undefined) updates.order = task.order + 1;
       if (taskIsFrog && task.isFrog) updates.isFrog = undefined;

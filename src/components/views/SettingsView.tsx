@@ -351,6 +351,53 @@ export function SettingsView() {
       </div>
 
       <div className="settings-group">
+        <h2>Scratches</h2>
+        <div className="setting-item">
+          <div className="setting-info">
+            <span className="setting-name">Scratches</span>
+            <span className="setting-desc">
+              {data.scratchesEnabled
+                ? data.scratchesPath
+                  ? `Reading from ${data.scratchesPath.split("/").pop()}/`
+                  : "Enabled — select a folder"
+                : "Browse markdown scratch notes from a folder"}
+            </span>
+          </div>
+          <button
+            className={`toggle ${data.scratchesEnabled ? "on" : ""}`}
+            onClick={() => saveData({ ...data, scratchesEnabled: !data.scratchesEnabled })}
+          >
+            <span className="toggle-knob" />
+          </button>
+        </div>
+        {data.scratchesEnabled && (
+          <div className="setting-item">
+            <div className="setting-info">
+              <span className="setting-name">Scratches folder</span>
+              <span className="setting-desc recap-path-desc">
+                {data.scratchesPath || "No folder selected"}
+              </span>
+            </div>
+            <button
+              className="browse-btn"
+              onClick={async () => {
+                const selected = await open({
+                  directory: true,
+                  multiple: false,
+                  title: "Select Scratches folder",
+                });
+                if (selected && typeof selected === "string") {
+                  await saveData({ ...data, scratchesPath: selected });
+                }
+              }}
+            >
+              Browse
+            </button>
+          </div>
+        )}
+      </div>
+
+      <div className="settings-group">
         <h2>System</h2>
         <div className="setting-item">
           <div className="setting-info">

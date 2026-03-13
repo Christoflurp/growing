@@ -7,7 +7,7 @@ import { useConfirmModal } from "../../context/ConfirmModalContext";
 import { useAppData } from "../../context/AppDataContext";
 import { getGreeting, formatDateTime } from "../../utils/formatUtils";
 import { getTodayDate } from "../../utils/dateUtils";
-import { NavView, DailyTask, NowPlayingInfo, Curiosity } from "../../types";
+import { NavView, DailyTask, NowPlayingInfo } from "../../types";
 import { FrogIcon } from "../shared/FrogIcon";
 import { CategoryToggle } from "../shared/CategoryToggle";
 import { MarkdownText } from "../shared/MarkdownText";
@@ -18,7 +18,7 @@ interface TodayViewProps {
   currentTime: Date;
   onNavigate: (view: NavView) => void;
   onStartTaskTimer?: (taskId: string, taskName: string) => void;
-  onAddCuriosity?: () => void;
+  onOpenQuestions?: () => void;
   todayReviewCount?: number;
   nowPlaying?: NowPlayingInfo | null;
   onRefreshNowPlaying?: () => void;
@@ -26,7 +26,7 @@ interface TodayViewProps {
   oneOnOnePendingCount?: number;
 }
 
-export function TodayView({ currentTime, onNavigate, onStartTaskTimer, onAddCuriosity, todayReviewCount, nowPlaying, onRefreshNowPlaying, isOneOnOneDay, oneOnOnePendingCount }: TodayViewProps) {
+export function TodayView({ currentTime, onNavigate, onStartTaskTimer, onOpenQuestions, todayReviewCount, nowPlaying, onRefreshNowPlaying, isOneOnOneDay, oneOnOnePendingCount }: TodayViewProps) {
   const { data, saveData } = useAppData();
   const { showConfirm } = useConfirmModal();
 
@@ -90,11 +90,6 @@ export function TodayView({ currentTime, onNavigate, onStartTaskTimer, onAddCuri
 
   const todayTasks = getTodayTasks();
   useConfetti(todayTasks);
-
-  const incompleteCuriosities = (data?.curiosities || []).filter((c: Curiosity) => !c.completed);
-  const suggestedCuriosity = incompleteCuriosities.length > 0
-    ? incompleteCuriosities[Math.floor(Date.now() / 86400000) % incompleteCuriosities.length]
-    : null;
 
   const deleteTask = (taskId: string) => {
     showConfirm("Delete this task?", () => {
@@ -261,6 +256,15 @@ export function TodayView({ currentTime, onNavigate, onStartTaskTimer, onAddCuri
           >
             🍐
           </button>
+          {data?.scratchesEnabled && data?.scratchesPath && (
+            <button
+              className="scratches-nav-btn"
+              onClick={() => onNavigate("scratches")}
+              title="Scratches"
+            >
+              ✏️
+            </button>
+          )}
           {frogEnabled && !hasFrog && (
             <span
               className={`frog-drag-source ${isDraggingFrog ? "dragging" : ""}`}
@@ -277,7 +281,7 @@ export function TodayView({ currentTime, onNavigate, onStartTaskTimer, onAddCuri
         {data?.appleMusicEnabled !== false && (
           <MusicWidget nowPlaying={nowPlaying ?? null} onRefresh={onRefreshNowPlaying} />
         )}
-        <div className={`curiosity-widget ${!suggestedCuriosity ? "empty" : ""}`} onClick={() => suggestedCuriosity ? onNavigate("curiosities") : onAddCuriosity?.()}>
+        <div className={`curiosity-widget ${!data?.questionsText ? "empty" : ""}`} onClick={() => onOpenQuestions?.()}>
           <div className="curiosity-widget-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
               <circle cx="12" cy="12" r="10" />
@@ -286,16 +290,11 @@ export function TodayView({ currentTime, onNavigate, onStartTaskTimer, onAddCuri
             </svg>
           </div>
           <div className="curiosity-widget-content">
-            <span className="curiosity-widget-label">Curiosity</span>
-            {suggestedCuriosity ? (
-              <>
-                <p className="curiosity-widget-title">{suggestedCuriosity.title}</p>
-                {suggestedCuriosity.description && (
-                  <p className="curiosity-widget-desc">{suggestedCuriosity.description}</p>
-                )}
-              </>
+            <span className="curiosity-widget-label">Questions</span>
+            {data?.questionsText ? (
+              <p className="curiosity-widget-title">{data.questionsText.split("\n").filter(l => l.trim()).length} question{data.questionsText.split("\n").filter(l => l.trim()).length !== 1 ? "s" : ""}</p>
             ) : (
-              <p className="curiosity-widget-title">What are you unsure about?</p>
+              <p className="curiosity-widget-title">Jot down questions</p>
             )}
           </div>
         </div>
@@ -355,7 +354,7 @@ export function TodayView({ currentTime, onNavigate, onStartTaskTimer, onAddCuri
             <div className="task-form-actions">
               <button
                 className="btn-save"
-                onClick={addTask}
+                onClick={() => addTask()}
                 disabled={!taskText.trim()}
               >
                 Add Task

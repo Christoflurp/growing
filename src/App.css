@@ -1312,6 +1312,7 @@ select:disabled {
   align-items: center;
   justify-content: center;
   padding: 24px;
+  z-index: 1000;
   animation: fadeIn 0.15s ease;
 }
 
@@ -9848,4 +9849,770 @@ select:disabled {
 .dark .nb-collapsible-count {
   background: var(--nb-aged);
   color: var(--nb-ink);
+}
+
+/* ========================================
+   Dev Mode Badge
+   ======================================== */
+
+.dev-mode-badge {
+  position: fixed;
+  top: 4px;
+  right: 4px;
+  z-index: 9999;
+  background: #ff4444;
+  color: white;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  pointer-events: none;
+  opacity: 0.85;
+}
+
+/* ========================================
+   Scratches View
+   ======================================== */
+
+.scratches-view .view-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.scratches-view .back-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+}
+
+.scratches-view .back-btn:hover {
+  color: var(--text-primary);
+}
+
+.scratches-view .back-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.scratch-count {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+.scratch-search {
+  padding: 0 0 12px;
+}
+
+.scratch-search .search-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 13px;
+  background: var(--input-bg);
+  color: var(--text-primary);
+  outline: none;
+}
+
+.scratch-search .search-input:focus {
+  border-color: var(--accent-color);
+}
+
+.scratch-month-group {
+  margin-bottom: 8px;
+}
+
+.scratch-month-header {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-secondary);
+  padding: 8px 0 4px;
+}
+
+.scratch-folder-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  background: var(--card-bg);
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: left;
+  margin-bottom: 4px;
+  transition: background 0.15s;
+}
+
+.scratch-folder-card:hover {
+  background: var(--card-hover-bg);
+}
+
+.scratch-folder-icon {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.scratch-folder-icon svg {
+  width: 20px;
+  height: 20px;
+  color: var(--accent-color);
+}
+
+.scratch-file-count {
+  position: absolute;
+  top: -4px;
+  right: -6px;
+  background: var(--accent-color);
+  color: white;
+  font-size: 9px;
+  font-weight: 700;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.scratch-folder-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.scratch-folder-title {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  text-transform: capitalize;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.scratch-folder-date {
+  display: block;
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 1px;
+}
+
+.scratch-chevron {
+  width: 16px;
+  height: 16px;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.scratch-files-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.scratch-file-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  background: var(--card-bg);
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s;
+}
+
+.scratch-file-card:hover {
+  background: var(--card-hover-bg);
+}
+
+.scratch-file-card svg {
+  width: 18px;
+  height: 18px;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.scratch-file-card span {
+  font-size: 13px;
+  color: var(--text-primary);
+  text-transform: capitalize;
+}
+
+.scratch-file-header {
+  flex: 1;
+}
+
+.scratch-file-header h1 {
+  text-transform: capitalize;
+}
+
+.scratch-folder-name {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.scratch-content {
+  padding: 4px 0 24px;
+  overflow-y: auto;
+}
+
+.loading-state,
+.error-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.error-state {
+  color: #e74c3c;
+}
+
+/* ========================================
+   Full Markdown Renderer
+   ======================================== */
+
+.full-markdown {
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text-primary);
+}
+
+.full-markdown h1 {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 20px 0 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.full-markdown h1:first-child {
+  margin-top: 0;
+}
+
+.full-markdown h2 {
+  font-size: 17px;
+  font-weight: 600;
+  margin: 16px 0 6px;
+}
+
+.full-markdown h3 {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 14px 0 4px;
+}
+
+.full-markdown h4,
+.full-markdown h5,
+.full-markdown h6 {
+  font-size: 13px;
+  font-weight: 600;
+  margin: 12px 0 4px;
+}
+
+.full-markdown p {
+  margin: 6px 0;
+}
+
+.full-markdown ul,
+.full-markdown ol {
+  margin: 6px 0;
+  padding-left: 20px;
+}
+
+.full-markdown li {
+  margin: 3px 0;
+}
+
+.full-markdown .md-code-block {
+  background: var(--code-bg, rgba(0, 0, 0, 0.06));
+  border-radius: 6px;
+  padding: 12px;
+  margin: 8px 0;
+  overflow-x: auto;
+  position: relative;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.dark .full-markdown .md-code-block {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.full-markdown .md-code-lang {
+  position: absolute;
+  top: 4px;
+  right: 8px;
+  font-size: 10px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.full-markdown .md-code-block code {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  white-space: pre;
+}
+
+.full-markdown .md-inline-code {
+  background: var(--code-bg, rgba(0, 0, 0, 0.06));
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 12px;
+}
+
+.dark .full-markdown .md-inline-code {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.full-markdown .md-blockquote {
+  border-left: 3px solid var(--accent-color);
+  padding: 4px 12px;
+  margin: 8px 0;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.full-markdown .md-hr {
+  border: none;
+  border-top: 1px solid var(--border-color);
+  margin: 16px 0;
+}
+
+.full-markdown .markdown-link {
+  color: var(--accent-color);
+  text-decoration: none;
+}
+
+.full-markdown .markdown-link:hover {
+  text-decoration: underline;
+}
+
+.full-markdown strong {
+  font-weight: 600;
+}
+
+/* ========================================
+   Questions Modal
+   ======================================== */
+
+.questions-modal {
+  background: var(--bg-card);
+  border-radius: 12px;
+  width: 90%;
+  max-width: 480px;
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.questions-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 16px 8px;
+}
+
+.questions-modal-header h2 {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.questions-modal-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.questions-edit-btn {
+  background: none;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.questions-edit-btn:hover {
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+}
+
+.questions-note-btn,
+.questions-clear-btn {
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+}
+
+.questions-note-btn:hover {
+  color: var(--accent-color);
+}
+
+.questions-clear-btn:hover {
+  color: #e74c3c;
+}
+
+.questions-note-btn svg,
+.questions-clear-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.questions-textarea {
+  flex: 1;
+  margin: 0 16px;
+  padding: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  line-height: 1.6;
+  background: var(--input-bg);
+  color: var(--text-primary);
+  resize: none;
+  min-height: 160px;
+  outline: none;
+}
+
+.questions-textarea:focus {
+  border-color: var(--accent-color);
+}
+
+.questions-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px 16px;
+}
+
+.questions-saved {
+  font-size: 12px;
+  color: var(--accent-color);
+  font-weight: 500;
+}
+
+.questions-rendered {
+  padding: 8px 16px 16px;
+  overflow-y: auto;
+  cursor: text;
+  min-height: 80px;
+}
+
+.questions-empty {
+  padding: 24px 16px;
+  text-align: center;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+/* ========================================
+   Scratches View — Scratch Pad Theme
+   ======================================== */
+
+.scratches-view {
+  --scratch-paper: #fffef7;
+  --scratch-ink: #1a1a2e;
+  --scratch-faded: #8a8a9a;
+  --scratch-grid: #e8e6dd;
+  --scratch-accent: #4a6fa5;
+  --scratch-highlight: #e8f0fe;
+  --scratch-pencil: #555568;
+  --scratch-margin: #d4d0c8;
+  --scratch-folder-bg: #faf9f4;
+}
+
+.dark .scratches-view {
+  --scratch-paper: #1a1a24;
+  --scratch-ink: #d8d8e4;
+  --scratch-faded: #6a6a7a;
+  --scratch-grid: #2a2a38;
+  --scratch-accent: #6a9fd8;
+  --scratch-highlight: #1e2a3a;
+  --scratch-pencil: #9a9aaa;
+  --scratch-margin: #2e2e3e;
+  --scratch-folder-bg: #1e1e28;
+}
+
+.scratches-view {
+  background:
+    repeating-linear-gradient(
+      var(--scratch-grid) 0px,
+      var(--scratch-grid) 1px,
+      transparent 1px,
+      transparent 28px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      var(--scratch-grid) 0px,
+      var(--scratch-grid) 1px,
+      transparent 1px,
+      transparent 28px
+    ),
+    var(--scratch-paper) !important;
+  color: var(--scratch-ink);
+}
+
+.scratches-view .view-header {
+  background: transparent;
+  border-bottom: 2px solid var(--scratch-margin);
+  padding-bottom: 10px;
+  margin-bottom: 12px;
+}
+
+.scratches-view .view-header h1 {
+  font-family: 'Caveat', cursive;
+  font-weight: 700;
+  font-size: 26px;
+  letter-spacing: 0;
+  color: var(--scratch-ink);
+}
+
+.scratches-view .scratch-count {
+  font-family: 'Caveat', cursive;
+  font-size: 16px;
+  color: var(--scratch-faded);
+  background: var(--scratch-highlight);
+  padding: 1px 8px;
+  border-radius: 4px;
+}
+
+.scratches-view .back-btn {
+  color: var(--scratch-accent);
+}
+
+.scratches-view .back-btn:hover {
+  color: var(--scratch-ink);
+}
+
+.scratches-view .scratch-search .search-input {
+  background: var(--scratch-paper);
+  border: 1px dashed var(--scratch-margin);
+  font-family: 'Caveat', cursive;
+  font-size: 16px;
+  color: var(--scratch-ink);
+  border-radius: 4px;
+}
+
+.scratches-view .scratch-search .search-input::placeholder {
+  color: var(--scratch-faded);
+  font-style: italic;
+}
+
+.scratches-view .scratch-search .search-input:focus {
+  border-style: solid;
+  border-color: var(--scratch-accent);
+}
+
+.scratches-view .scratch-month-header {
+  font-family: 'Caveat', cursive;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: var(--scratch-faded);
+  text-transform: none;
+  padding: 12px 0 4px;
+  border-bottom: 1px dashed var(--scratch-grid);
+  margin-bottom: 6px;
+}
+
+.scratches-view .scratch-folder-card {
+  background: var(--scratch-folder-bg);
+  border: 1px solid transparent;
+  border-left: 3px solid var(--scratch-accent);
+  border-radius: 2px;
+  padding: 10px 14px;
+  margin-bottom: 3px;
+  transition: all 0.15s;
+}
+
+.scratches-view .scratch-folder-card:hover {
+  background: var(--scratch-highlight);
+  border-left-color: var(--scratch-ink);
+}
+
+.scratches-view .scratch-folder-icon svg {
+  color: var(--scratch-accent);
+  opacity: 0.7;
+}
+
+.scratches-view .scratch-file-count {
+  background: var(--scratch-accent);
+  font-family: 'Caveat', cursive;
+  font-size: 11px;
+}
+
+.scratches-view .scratch-folder-title {
+  font-family: 'Caveat', cursive;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--scratch-ink);
+  line-height: 1.2;
+}
+
+.scratches-view .scratch-folder-date {
+  font-family: 'Caveat', cursive;
+  font-size: 14px;
+  color: var(--scratch-faded);
+}
+
+.scratches-view .scratch-chevron {
+  color: var(--scratch-faded);
+  opacity: 0.5;
+}
+
+.scratches-view .scratch-file-card {
+  background: var(--scratch-folder-bg);
+  border: 1px dashed var(--scratch-margin);
+  border-radius: 2px;
+  padding: 10px 14px;
+  transition: all 0.15s;
+}
+
+.scratches-view .scratch-file-card:hover {
+  background: var(--scratch-highlight);
+  border-style: solid;
+  border-color: var(--scratch-accent);
+}
+
+.scratches-view .scratch-file-card svg {
+  color: var(--scratch-pencil);
+}
+
+.scratches-view .scratch-file-card span {
+  font-family: 'Caveat', cursive;
+  font-size: 17px;
+  font-weight: 500;
+  color: var(--scratch-ink);
+}
+
+.scratches-view .scratch-file-header h1 {
+  font-family: 'Caveat', cursive;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.scratches-view .scratch-folder-name {
+  font-family: 'Caveat', cursive;
+  font-size: 14px;
+  color: var(--scratch-faded);
+}
+
+.scratches-view .scratch-content {
+  padding: 8px 0 32px;
+}
+
+.scratches-view .scratch-content .full-markdown {
+  font-family: 'Caveat', cursive;
+  font-size: 18px;
+  line-height: 1.55;
+  color: var(--scratch-pencil);
+}
+
+.scratches-view .scratch-content .full-markdown h1,
+.scratches-view .scratch-content .full-markdown h2,
+.scratches-view .scratch-content .full-markdown h3 {
+  color: var(--scratch-ink);
+  font-family: 'Caveat', cursive;
+}
+
+.scratches-view .scratch-content .full-markdown h1 {
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.scratches-view .scratch-content .full-markdown h2 {
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.scratches-view .scratch-content .full-markdown h3 {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.scratches-view .scratch-content .full-markdown h1 {
+  border-bottom: 2px solid var(--scratch-margin);
+}
+
+.scratches-view .scratch-content .full-markdown .md-code-block {
+  background: var(--scratch-folder-bg);
+  border: 1px dashed var(--scratch-margin);
+  border-radius: 2px;
+}
+
+.scratches-view .scratch-content .full-markdown .md-inline-code {
+  background: var(--scratch-highlight);
+  color: var(--scratch-accent);
+}
+
+.scratches-view .scratch-content .full-markdown .md-blockquote {
+  border-left-color: var(--scratch-accent);
+  color: var(--scratch-faded);
+  font-style: italic;
+}
+
+.scratches-view .scratch-content .full-markdown .markdown-link {
+  color: var(--scratch-accent);
+}
+
+.scratches-view .scratch-content .full-markdown strong {
+  color: var(--scratch-ink);
+}
+
+.scratches-view .scratch-content .full-markdown .md-hr {
+  border-top: 1px dashed var(--scratch-margin);
+}
+
+.scratches-view .empty-state {
+  font-family: 'Caveat', cursive;
+  font-size: 18px;
+  color: var(--scratch-faded);
+}
+
+.scratches-view .empty-state .empty-icon svg {
+  color: var(--scratch-faded);
+  opacity: 0.4;
+}
+
+.scratches-view .loading-state {
+  font-family: 'Caveat', cursive;
+  font-size: 18px;
+  color: var(--scratch-faded);
+}
+
+.scratches-nav-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 4px;
+  opacity: 0.8;
+  transition: opacity 0.15s;
+}
+
+.scratches-nav-btn:hover {
+  opacity: 1;
 }

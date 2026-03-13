@@ -847,6 +847,12 @@ pub struct AppData {
     pub weekly_recap_enabled: bool,
     #[serde(default, rename = "weeklyRecapPath", skip_serializing_if = "Option::is_none")]
     pub weekly_recap_path: Option<String>,
+    #[serde(default, rename = "scratchesEnabled")]
+    pub scratches_enabled: bool,
+    #[serde(default, rename = "scratchesPath", skip_serializing_if = "Option::is_none")]
+    pub scratches_path: Option<String>,
+    #[serde(default, rename = "questionsText", skip_serializing_if = "Option::is_none")]
+    pub questions_text: Option<String>,
 }
 
 fn default_theme() -> String {
@@ -1283,6 +1289,94 @@ fn load_weekly_recap(path: String, filename: String) -> Result<serde_json::Value
         .map_err(|e| format!("Failed to parse recap JSON: {}", e))
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ScratchFolder {
+    pub name: String,
+    pub date: String,
+    pub title: String,
+    pub files: Vec<String>,
+    pub modified: String,
+}
+
+#[tauri::command]
+fn list_scratches(path: String) -> Result<Vec<ScratchFolder>, String> {
+    let dir = PathBuf::from(&path);
+    if !dir.is_dir() {
+        return Err(format!("Not a directory: {}", path));
+    }
+
+    let mut items: Vec<ScratchFolder> = Vec::new();
+    let entries = fs::read_dir(&dir)
+        .map_err(|e| format!("Failed to read directory: {}", e))?;
+
+    for entry in entries.flatten() {
+        let entry_path = entry.path();
+        if !entry_path.is_dir() {
+            continue;
+        }
+        let name = entry.file_name().to_string_lossy().to_string();
+        if name.starts_with('.') {
+            continue;
+        }
+
+        // Parse date prefix (YYYY-MM-DD-title-slug)
+        let (date, title) = if name.len() >= 10 && name.chars().nth(4) == Some('-') && name.chars().nth(7) == Some('-') {
+            let date_part = &name[..10];
+            let title_part = if name.len() > 11 {
+                name[11..].replace('-', " ")
+            } else {
+                name.clone()
+            };
+            (date_part.to_string(), title_part)
+        } else {
+            (String::new(), name.clone())
+        };
+
+        // Find .md files in the folder
+        let mut files: Vec<String> = Vec::new();
+        if let Ok(sub_entries) = fs::read_dir(&entry_path) {
+            for sub_entry in sub_entries.flatten() {
+                let fname = sub_entry.file_name().to_string_lossy().to_string();
+                if fname.ends_with(".md") && !fname.starts_with('.') {
+                    files.push(fname);
+                }
+            }
+        }
+
+        if files.is_empty() {
+            continue;
+        }
+
+        files.sort();
+
+        let modified = entry_path.metadata()
+            .and_then(|m| m.modified())
+            .map(|t| {
+                let datetime: chrono::DateTime<chrono::Local> = t.into();
+                datetime.to_rfc3339()
+            })
+            .unwrap_or_default();
+
+        items.push(ScratchFolder {
+            name: name.clone(),
+            date,
+            title,
+            files,
+            modified,
+        });
+    }
+
+    items.sort_by(|a, b| b.name.cmp(&a.name));
+    Ok(items)
+}
+
+#[tauri::command]
+fn load_scratch_file(path: String, folder: String, filename: String) -> Result<String, String> {
+    let file_path = PathBuf::from(&path).join(&folder).join(&filename);
+    fs::read_to_string(&file_path)
+        .map_err(|e| format!("Failed to read scratch file: {}", e))
+}
+
 #[tauri::command]
 fn show_main_window(app: AppHandle) {
     if let Some(main) = app.get_webview_window("main") {
@@ -1545,6 +1639,8 @@ pub fn run() {
             register_mcp_with_claude_code,
             list_weekly_recaps,
             load_weekly_recap,
+            list_scratches,
+            load_scratch_file,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

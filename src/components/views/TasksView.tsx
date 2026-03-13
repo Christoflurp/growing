@@ -289,7 +289,7 @@ export function TasksView({ selectedDate, onOpenDatePicker, onOpenSchedulePicker
             </label>
           )}
           <div className="task-form-actions">
-            <button className="btn-save" onClick={addTask} disabled={!taskText.trim()}>
+            <button className="btn-save" onClick={() => addTask(selectedDate)} disabled={!taskText.trim()}>
               Add Task
             </button>
             <button
