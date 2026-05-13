@@ -572,10 +572,10 @@ export function WeeklyRecapView() {
         <section className="nb-section nb-growth-section">
           <h2 className="nb-section-title">Growth Assessment</h2>
           <div className="nb-growth-grid">
-            <GrowthStamp label="Incremental Delivery" signal={growth.incrementalDelivery} />
-            <GrowthStamp label="Self Confidence" signal={growth.selfConfidence} />
-            <GrowthStamp label="Systems Thinking" signal={growth.systemsThinking} />
-            <GrowthStamp label="Execution" signal={growth.execution} />
+            <GrowthStamp label="Own Your Output" signal={growth.ownYourOutput} />
+            <GrowthStamp label="Drive Through Friction" signal={growth.driveThroughFriction} />
+            <GrowthStamp label="Sustained Pace" signal={growth.sustainedPace} />
+            <GrowthStamp label="Advocate Early" signal={growth.advocateEarly} />
           </div>
         </section>
 

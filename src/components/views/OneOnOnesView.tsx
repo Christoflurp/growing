@@ -85,7 +85,7 @@ export function OneOnOnesView({ onScheduleNote }: OneOnOnesViewProps) {
   const handleCompleteSession = () => {
     if (!config || pendingNotes.length === 0) return;
     showConfirm(
-      `Complete session? ${pendingNotes.length} note${pendingNotes.length === 1 ? "" : "s"} will be archived.`,
+      `Complete session? Your ${pendingNotes.length} note${pendingNotes.length === 1 ? "" : "s"} will be saved to this session's history.`,
       () => completeSession(config.id)
     );
   };

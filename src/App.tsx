@@ -46,6 +46,7 @@ import { PairingView } from "./components/views/PairingView";
 import { WeeklyRecapView } from "./components/views/WeeklyRecapView";
 import { ScratchesView } from "./components/views/ScratchesView";
 import { QuestionsModal } from "./components/shared/QuestionsModal";
+import { DayViewModal } from "./components/shared/DayViewModal";
 import { NavView, Todo, NowPlayingInfo, Curiosity, Review, TaskCategory, DailyTask, BragDocEntry, OneOnOneNoteType } from "./types";
 import { useOneOnOnes } from "./hooks/useOneOnOnes";
 import { getNextOneOnOneDate } from "./utils/oneOnOneUtils";
@@ -144,6 +145,8 @@ function AppContent({ alertOverlay, onDismissAlert, nowPlaying, onRefreshNowPlay
   const [timerModalTaskName, setTimerModalTaskName] = useState<string | undefined>();
   const [showCuriosityModal, setShowCuriosityModal] = useState(false);
   const [showQuestionsModal, setShowQuestionsModal] = useState(false);
+  const [dayViewDate, setDayViewDate] = useState<string | null>(null);
+  const [pendingDayView, setPendingDayView] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [showBragDocModal, setShowBragDocModal] = useState(false);
@@ -416,6 +419,9 @@ function AppContent({ alertOverlay, onDismissAlert, nowPlaying, onRefreshNowPlay
       setPendingScheduleOneOnOneNote(null);
     } else if (pendingScheduleTodo) {
       scheduleTodo(pendingScheduleTodo, date);
+    } else if (pendingDayView) {
+      setDayViewDate(date);
+      setPendingDayView(false);
     } else {
       setSelectedDate(date);
     }
@@ -456,6 +462,7 @@ function AppContent({ alertOverlay, onDismissAlert, nowPlaying, onRefreshNowPlay
     setShowDatePicker(false);
     setPendingScheduleTodo(null);
     setPendingScheduleOneOnOneNote(null);
+    setPendingDayView(false);
   };
 
   const handleCalendarGoToToday = () => {
@@ -507,6 +514,10 @@ function AppContent({ alertOverlay, onDismissAlert, nowPlaying, onRefreshNowPlay
         onAddBragDoc={() => setShowBragDocModal(true)}
         onAddOneOnOneNote={handleOpenOneOnOneNoteModal}
         onAddPairingNote={() => setActiveView("pairing")}
+        onOpenDayView={() => {
+          setPendingDayView(true);
+          openDatePicker();
+        }}
       />
 
       {getFocusTimers().map((timer) => {
@@ -574,6 +585,14 @@ function AppContent({ alertOverlay, onDismissAlert, nowPlaying, onRefreshNowPlay
         onClose={() => setShowQuestionsModal(false)}
       />
 
+      {dayViewDate && data && (
+        <DayViewModal
+          date={dayViewDate}
+          data={data}
+          onClose={() => setDayViewDate(null)}
+        />
+      )}
+
       <QuickNoteModal
         show={showQuickNote}
         value={quickNoteInput}
@@ -617,7 +636,7 @@ function AppContent({ alertOverlay, onDismissAlert, nowPlaying, onRefreshNowPlay
 
       <CalendarPicker
         show={showDatePicker}
-        contextText={pendingScheduleOneOnOneNote ? "Schedule 1-1 action item" : pendingScheduleTodo?.text || null}
+        contextText={pendingDayView ? "Select a date to view" : pendingScheduleOneOnOneNote ? "Schedule 1-1 action item" : pendingScheduleTodo?.text || null}
         month={calendarPickerMonth}
         year={calendarPickerYear}
         selectedDate={selectedDate}

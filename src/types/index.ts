@@ -119,12 +119,20 @@ export interface AppData {
   activeTimer?: ActiveTimer;
   activeTimers?: ActiveTimer[];
   atcDays?: string[];
+  atcNotes?: AtcNote[];
   mcpServerEnabled?: boolean;
   weeklyRecapEnabled?: boolean;
   weeklyRecapPath?: string;
   scratchesEnabled?: boolean;
   scratchesPath?: string;
   questionsText?: string;
+}
+
+export interface AtcNote {
+  id: string;
+  date: string;
+  text: string;
+  createdAt: string;
 }
 
 export type NavView = "today" | "tasks" | "goals" | "scratches" | "notes" | "bragdoc" | "curiosities" | "reviews" | "one-on-ones" | "pairing" | "weekly-recap" | "settings";
@@ -398,10 +406,10 @@ export interface GrowthSignal {
 }
 
 export interface WeeklyRecapGrowth {
-  incrementalDelivery: GrowthSignal;
-  selfConfidence: GrowthSignal;
-  systemsThinking: GrowthSignal;
-  execution: GrowthSignal;
+  ownYourOutput: GrowthSignal;
+  driveThroughFriction: GrowthSignal;
+  sustainedPace: GrowthSignal;
+  advocateEarly: GrowthSignal;
 }
 
 export interface WeeklyRecap {

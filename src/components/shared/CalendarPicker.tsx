@@ -39,7 +39,6 @@ export function CalendarPicker({
       <div className="calendar-picker-modal" onClick={(e) => e.stopPropagation()}>
         {contextText && (
           <div className="calendar-picker-context">
-            <span>Schedule task:</span>
             <strong>{contextText}</strong>
           </div>
         )}

@@ -21,6 +21,7 @@ interface NavigationProps {
   onAddBragDoc?: () => void;
   onAddOneOnOneNote?: () => void;
   onAddPairingNote?: () => void;
+  onOpenDayView?: () => void;
 }
 
 const Navigation: React.FC<NavigationProps> = ({
@@ -43,6 +44,7 @@ const Navigation: React.FC<NavigationProps> = ({
   onAddBragDoc,
   onAddOneOnOneNote,
   onAddPairingNote,
+  onOpenDayView,
 }) => {
   return (
     <TabNav
@@ -65,6 +67,7 @@ const Navigation: React.FC<NavigationProps> = ({
       onAddBragDoc={onAddBragDoc}
       onAddOneOnOneNote={onAddOneOnOneNote}
       onAddPairingNote={onAddPairingNote}
+      onOpenDayView={onOpenDayView}
     />
   );
 };

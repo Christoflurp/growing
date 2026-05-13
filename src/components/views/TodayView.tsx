@@ -7,7 +7,7 @@ import { useConfirmModal } from "../../context/ConfirmModalContext";
 import { useAppData } from "../../context/AppDataContext";
 import { getGreeting, formatDateTime } from "../../utils/formatUtils";
 import { getTodayDate } from "../../utils/dateUtils";
-import { NavView, DailyTask, NowPlayingInfo } from "../../types";
+import { NavView, DailyTask, NowPlayingInfo, AtcNote } from "../../types";
 import { FrogIcon } from "../shared/FrogIcon";
 import { CategoryToggle } from "../shared/CategoryToggle";
 import { MarkdownText } from "../shared/MarkdownText";
@@ -41,6 +41,30 @@ export function TodayView({ currentTime, onNavigate, onStartTaskTimer, onOpenQue
       : [...currentAtcDays, today];
     await saveData({ ...data, atcDays: newAtcDays });
   };
+
+  const [atcNoteText, setAtcNoteText] = useState("");
+  const [atcNotesExpanded, setAtcNotesExpanded] = useState(true);
+  const todayAtcNotes = (data?.atcNotes || []).filter((n) => n.date === today);
+
+  const addAtcNote = async () => {
+    if (!data || !atcNoteText.trim()) return;
+    const newNote: AtcNote = {
+      id: crypto.randomUUID(),
+      date: today,
+      text: atcNoteText.trim(),
+      createdAt: new Date().toISOString(),
+    };
+    await saveData({ ...data, atcNotes: [...(data.atcNotes || []), newNote] });
+    setAtcNoteText("");
+  };
+
+  const deleteAtcNote = (noteId: string) => {
+    if (!data) return;
+    showConfirm("Delete this note?", () => {
+      saveData({ ...data, atcNotes: (data.atcNotes || []).filter((n) => n.id !== noteId) });
+    });
+  };
+
   const { deferTaskToBacklog } = useTodos();
   const { getAllGoals, getGoalById } = useGoals();
 
@@ -299,6 +323,55 @@ export function TodayView({ currentTime, onNavigate, onStartTaskTimer, onOpenQue
           </div>
         </div>
       </div>
+
+      {isAtcToday && (
+        <div className="atc-notes-section entrance-2">
+          <div className="atc-notes-header" onClick={() => setAtcNotesExpanded(!atcNotesExpanded)}>
+            <span className="atc-notes-title">
+              <span className="atc-pulse-dot" />
+              ATC Shift Notes
+              {todayAtcNotes.length > 0 && <span className="atc-notes-count">{todayAtcNotes.length}</span>}
+            </span>
+            <svg className={`atc-chevron ${atcNotesExpanded ? "expanded" : ""}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </div>
+          {atcNotesExpanded && (
+            <div className="atc-notes-body">
+              <div className="atc-notes-input-row">
+                <input
+                  type="text"
+                  placeholder="What happened during this shift?"
+                  value={atcNoteText}
+                  onChange={(e) => setAtcNoteText(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && atcNoteText.trim()) addAtcNote();
+                  }}
+                />
+                <button className="atc-notes-add-btn" onClick={addAtcNote} disabled={!atcNoteText.trim()}>Add</button>
+              </div>
+              {todayAtcNotes.length > 0 && (
+                <ul className="atc-notes-list">
+                  {todayAtcNotes.map((note) => (
+                    <li key={note.id} className="atc-note-item">
+                      <span className="atc-note-text">{note.text}</span>
+                      <span className="atc-note-time">
+                        {new Date(note.createdAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
+                      </span>
+                      <button className="atc-note-delete" onClick={() => deleteAtcNote(note.id)} title="Delete note">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <line x1="18" y1="6" x2="6" y2="18" />
+                          <line x1="6" y1="6" x2="18" y2="18" />
+                        </svg>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {showTaskForm && (
           <div className="task-form">

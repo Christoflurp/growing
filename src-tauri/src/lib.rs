@@ -778,6 +778,15 @@ pub struct PairingSession {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
+pub struct AtcNote {
+    pub id: String,
+    pub date: String,
+    pub text: String,
+    #[serde(default, rename = "createdAt")]
+    pub created_at: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct PairingNote {
     pub id: String,
     #[serde(rename = "configId")]
@@ -837,6 +846,8 @@ pub struct AppData {
     pub frog_enabled: bool,
     #[serde(default, rename = "atcDays", skip_serializing_if = "Vec::is_empty")]
     pub atc_days: Vec<String>,
+    #[serde(default, rename = "atcNotes", skip_serializing_if = "Vec::is_empty")]
+    pub atc_notes: Vec<AtcNote>,
     #[serde(default, rename = "activeTimer", skip_serializing_if = "Option::is_none")]
     pub active_timer: Option<ActiveTimer>,
     #[serde(default, rename = "activeTimers", skip_serializing_if = "Vec::is_empty")]
