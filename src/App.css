@@ -332,7 +332,9 @@ body {
 }
 
 .header-datetime {
-  font-size: 15px;
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 500;
   color: var(--text-secondary);
 }
 
@@ -5126,7 +5128,7 @@ select:disabled {
 }
 
 [data-theme="paper"] .header-datetime {
-  font-size: 12px;
+  font-size: 14px;
   font-family: var(--font-body);
 }
 
@@ -5517,7 +5519,7 @@ select:disabled {
 }
 
 [data-theme="grove"] .header-datetime {
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 500;
 }
 
