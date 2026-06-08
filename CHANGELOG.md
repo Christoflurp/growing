@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.2] - 2026-06-08
+
+### Changed
+
+- Updated growth dimensions for the H2 2026 review cycle.
+- Refined Today page header alignment.
+- Refreshed README documentation to reflect the final archived app surface area.
+- Removed local Claude settings and generated rust-analyzer files from tracked source.
+
 ## [1.5.1] - 2026-03-13
 
 ### Changed

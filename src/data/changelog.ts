@@ -5,7 +5,7 @@ export interface ChangelogEntry {
   changes: string[];
 }
 
-export const APP_VERSION = "1.5.1";
+export const APP_VERSION = "1.5.2";
 
 export const changelog: ChangelogEntry[] = [
   {
@@ -13,6 +13,17 @@ export const changelog: ChangelogEntry[] = [
     date: null,
     title: "Upcoming Changes",
     changes: [],
+  },
+  {
+    version: "1.5.2",
+    date: "2026-06-08",
+    title: "Final Archival Release",
+    changes: [
+      "Updated growth dimensions for the H2 2026 review cycle",
+      "Fixed Today page header alignment",
+      "Documented the final app surface area before archiving the project",
+      "Removed local Claude settings and generated rust-analyzer files from tracked source",
+    ],
   },
   {
     version: "1.5.1",

@@ -9,6 +9,10 @@ A personal Mac menu bar app for growth tracking and accountability reminders.
 - **Vite** - Build tool
 - **JSON** - Local data storage
 
+## Git Workflow
+
+This is a personal repo. Commit directly to `main` — no branches, no PRs, no Graphite. Use raw `git` commands.
+
 ## Quick Start
 
 ```bash
